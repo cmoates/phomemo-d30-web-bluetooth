@@ -1,3 +1,17 @@
 * {
 	box-sizing: border-box;
 }
+
+#canvas {
+	transform: rotate(-90deg);
+	transform-origin: center;
+	margin: 20px 0;
+}
+
+.canvas-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	overflow: hidden;
+	width: fit-content;
+}
