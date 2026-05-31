@@ -159,29 +159,32 @@ class UnifiedPrintPreview {
 		const fontSizeMm = parseFloat(inputFontSize.value) || 6;
 		const fontSize = fontSizeMm * this.PIXELS_PER_MM;
 		
-		const lines = text.split('\n');
-		const lineHeight = fontSize * 1.2;
-		const totalHeight = lineHeight * lines.length;
-		const startY = printArea.y + Math.max(0, (printArea.height - totalHeight) / 2);
-		
-		lines.forEach((line, index) => {
-			const y = startY + (index * lineHeight);
-			
-			const textNode = new Konva.Text({
-				x: printArea.x,
-				y: y,
-				text: line || ' ',
-				fontSize: fontSize,
-				fontFamily: 'Arial, sans-serif',
-				fill: '#000000',
-				align: 'center',
-				width: printArea.width,
-				height: lineHeight
-			});
-			
-			manager.contentLayer.add(textNode);
+		// Create a temporary text node to measure its height
+		const tempText = new Konva.Text({
+			text: text,
+			fontSize: fontSize,
+			fontFamily: 'Arial, sans-serif',
+			align: 'center',
+			width: printArea.width,
+			wrap: 'word'
 		});
 		
+		const textHeight = tempText.getHeight();
+		const startY = printArea.y + Math.max(0, (printArea.height - textHeight) / 2);
+		
+		const textNode = new Konva.Text({
+			x: printArea.x,
+			y: startY,
+			text: text,
+			fontSize: fontSize,
+			fontFamily: 'Arial, sans-serif',
+			fill: '#000000',
+			align: 'center',
+			width: printArea.width,
+			wrap: 'word'
+		});
+		
+		manager.contentLayer.add(textNode);
 		manager.contentLayer.draw();
 	}
 	
