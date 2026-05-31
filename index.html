@@ -1296,13 +1296,13 @@
 				// ===== BARCODE TAB RENDERING =====
 				function updateCanvasBarcode() {
 					const canvas = document.querySelector("#canvasBarcode");
-					const inputBarcode = document.querySelector("#inputBarcode");
-					const inputBarcodeType = document.querySelector("#inputBarcodeType");
+					const barcodeInput = document.querySelector("#inputBarcode");
+					const barcodeTypeInput = document.querySelector("#inputBarcodeType");
 					
-					if (!canvas || !inputBarcode || !inputBarcodeType) return;
+					if (!canvas || !barcodeInput || !barcodeTypeInput) return;
 					
-					const data = inputBarcode.value || "123456";
-					const format = inputBarcodeType.value;
+					const data = barcodeInput.value || "123456";
+					const format = barcodeTypeInput.value;
 					
 					const ctx = canvas.getContext("2d");
 					
@@ -1325,37 +1325,40 @@
 					
 					// Use JsBarcode library to generate barcode
 					if (typeof window.JsBarcode !== 'undefined') {
-						// Validate data format and determine appropriate height and format name
+						// Normalize format for comparison
+						const formatUpper = format.toUpperCase();
+						
+						// Initialize validation and rendering parameters
 						let isValid = true;
-						let barcodeHeightRatio = 0.5; // Default 50% for most formats
-						let jsbarFormat = format.toUpperCase(); // JsBarcode format string
-					const formatUpper = format.toUpperCase(); // Normalize format for comparison
-					
-					if (formatUpper === "UPC") {
-						// UPC-A requires exactly 12 digits
-						if (!/^\d{12}$/.test(data)) {
-							isValid = false;
-						}
-						barcodeHeightRatio = 0.4; // UPC needs to be smaller - 40%
-						jsbarFormat = "UPC";
-					} else if (formatUpper === "EAN") {
-						// EAN can be 13 digits (EAN-13) or 8 digits (EAN-8)
-						// Determine which based on length
-						if (/^\d{13}$/.test(data)) {
-							jsbarFormat = "EAN13";
-							isValid = true;
-						} else if (/^\d{8}$/.test(data)) {
-							jsbarFormat = "EAN8";
-							isValid = true;
-						} else {
-							isValid = false;
-						}
-						barcodeHeightRatio = 0.4; // EAN needs to be smaller - 40%
-					} else if (formatUpper === "CODE128") {
+						let barcodeHeightRatio = 0.5;
+						let jsbarFormat = format;
+						
+						// Validate data based on format
+						if (formatUpper === "UPC") {
+							// UPC-A requires exactly 12 digits
+							isValid = /^\d{12}$/.test(data);
+							barcodeHeightRatio = 0.4;
+							jsbarFormat = "UPC";
+						} else if (formatUpper === "EAN") {
+							// EAN can be 13 digits (EAN-13) or 8 digits (EAN-8)
+							if (/^\d{13}$/.test(data)) {
+								jsbarFormat = "EAN13";
+								isValid = true;
+							} else if (/^\d{8}$/.test(data)) {
+								jsbarFormat = "EAN8";
+								isValid = true;
+							} else {
+								isValid = false;
+							}
+							barcodeHeightRatio = 0.4;
+						} else if (formatUpper === "CODE128") {
 							jsbarFormat = "CODE128";
-						barcodeHeightRatio = 0.75; // CODE128 can be larger - 75% of height
+							barcodeHeightRatio = 0.75;
+							isValid = true; // CODE128 accepts most inputs
+						}
+						
+						// Show error if data validation failed
 						if (!isValid) {
-							// Show error message
 							ctx.fillStyle = "#999";
 							ctx.font = "12px sans-serif";
 							ctx.textAlign = "center";
@@ -1386,8 +1389,8 @@
 							// Calculate optimal scale to fit barcode in available space
 							// Use 95% of available width to leave small margins
 							const maxWidth = printableWidth * 0.95;
-							let scaleX = maxWidth / tempCanvas.width;
-							let scaleY = barcodeHeight / tempCanvas.height;
+							const scaleX = maxWidth / tempCanvas.width;
+							const scaleY = barcodeHeight / tempCanvas.height;
 							
 							// Use the smaller scale to ensure barcode fits both horizontally and vertically
 							const scale = Math.min(scaleX, scaleY);
@@ -1646,11 +1649,11 @@
 				});
 				
 				// ===== BARCODE TAB LISTENERS =====
-				const inputBarcode = document.querySelector("#inputBarcode");
-				const inputBarcodeType = document.querySelector("#inputBarcodeType");
+				const barcodeInput = document.querySelector("#inputBarcode");
+				const barcodeTypeInput = document.querySelector("#inputBarcodeType");
 				
-				if (inputBarcode) inputBarcode.addEventListener("input", updateCanvasBarcode);
-				if (inputBarcodeType) inputBarcodeType.addEventListener("change", updateCanvasBarcode);
+				if (barcodeInput) barcodeInput.addEventListener("input", updateCanvasBarcode);
+				if (barcodeTypeInput) barcodeTypeInput.addEventListener("change", updateCanvasBarcode);
 				
 				// ===== IMAGE TAB LISTENERS =====
 				const inputImage = document.querySelector("#inputImage");
