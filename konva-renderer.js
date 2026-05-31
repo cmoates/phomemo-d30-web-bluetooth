@@ -448,25 +448,83 @@ class UnifiedPrintPreview {
 			});
 		}
 		
-		// Render text
+		// Render QR
+		if (inputQRTextData) {
+			const data = inputQRTextData.value || 'https://example.com';
+			const tempCanvas = document.createElement('canvas');
+			
+			window.QRCode.toCanvas(tempCanvas, data, { width: 200 }, (err) => {
+				if (!err) {
+					const qrSize = Math.min(qrArea.width, qrArea.height);
+					const qrImage = new Konva.Image({
+						image: tempCanvas,
+						x: qrArea.x,
+						y: qrArea.y,
+						width: qrSize,
+						height: qrSize
+					});
+					manager.contentLayer.add(qrImage);
+					manager.contentLayer.draw();
+				}
+			});
+		}
+		
+		// Render text with word wrapping on spaces and newlines
 		if (inputQRText && inputQRTextSize) {
-			const text = inputQRText.value || 'Label';
+			const rawText = inputQRText.value || 'Label';
 			const fontSizeMm = parseFloat(inputQRTextSize.value) || 4;
 			const fontSize = fontSizeMm * this.PIXELS_PER_MM;
+			const maxWidth = textArea.width - 16;
 			
-			const textNode = new Konva.Text({
-				x: textArea.x + 8,
-				y: textArea.y + (textArea.height - fontSize) / 2,
-				text: text,
-				fontSize: fontSize,
-				fontFamily: 'Arial, sans-serif',
-				fill: '#000000',
-				align: 'left',
-				width: textArea.width - 16,
-				wrap: 'word'
+			// Create temporary canvas for text measurement
+			const tempCanvas = document.createElement('canvas');
+			const context = tempCanvas.getContext('2d');
+			context.font = `${fontSize}px Arial`;
+			
+			// Split text into lines on newlines first
+			const lines = rawText.split('\n');
+			const wrappedLines = [];
+			
+			lines.forEach(line => {
+				// Split on spaces to get words
+				const words = line.split(' ');
+				let currentLine = '';
+				
+				words.forEach((word) => {
+					const testLine = currentLine ? currentLine + ' ' + word : word;
+					const metrics = context.measureText(testLine);
+					
+					if (metrics.width > maxWidth && currentLine) {
+						wrappedLines.push(currentLine);
+						currentLine = word;
+					} else {
+						currentLine = testLine;
+					}
+				});
+				
+				if (currentLine) {
+					wrappedLines.push(currentLine);
+				}
 			});
 			
-			manager.contentLayer.add(textNode);
+			// Render wrapped text lines
+			const lineHeight = fontSize * 1.2;
+			const totalHeight = lineHeight * wrappedLines.length;
+			let startY = textArea.y + (textArea.height - totalHeight) / 2;
+			
+			wrappedLines.forEach((line, index) => {
+				const textNode = new Konva.Text({
+					x: textArea.x + 8,
+					y: startY + (index * lineHeight),
+					text: line,
+					fontSize: fontSize,
+					fontFamily: 'Arial, sans-serif',
+					fill: '#000000',
+					align: 'left'
+				});
+				manager.contentLayer.add(textNode);
+			});
+			
 			manager.contentLayer.draw();
 		}
 	}
