@@ -862,20 +862,29 @@
 				}
 				
 				init() {
-					if (!this.canvasElement) return;
+					if (!this.canvasElement) {
+						console.warn('Canvas element not found');
+						return;
+					}
+					
+					const parentElement = this.canvasElement.parentElement;
+					if (!parentElement) {
+						console.warn('Canvas parent element not found');
+						return;
+					}
 					
 					// Create Konva stage
 					const width = (labelSize.width + 2 * HORIZONTAL_MARGIN_MM) * PIXELS_PER_MM;
 					const height = DISPLAY_HEIGHT_MM * PIXELS_PER_MM;
 					
 					this.stage = new Konva.Stage({
-						container: this.canvasElement.parentElement,
+						container: parentElement,
 						width: width,
 						height: height
 					});
 					
 					// Replace the original canvas with Konva container
-					if (this.canvasElement.parentElement.querySelector('.konva-container')) {
+					if (parentElement.querySelector('.konva-container')) {
 						this.canvasElement.style.display = 'none';
 					}
 					
@@ -1074,62 +1083,18 @@
 				const manager = initializeCanvasManager('canvas', createTextRenderer());
 				manager.render();
 			}
-				const btnBold = document.querySelector("#btnBold");
-				const btnItalic = document.querySelector("#btnItalic");
-				const btnAlignLeft = document.querySelector("#btnAlignLeft");
-				const btnAlignRight = document.querySelector("#btnAlignRight");
-				
-				// Build font string with bold/italic
-				let fontStyle = "";
-				if (btnItalic && btnItalic.classList.contains("active")) {
-					fontStyle += "italic ";
-				}
-				if (btnBold && btnBold.classList.contains("active")) {
-					fontStyle += "bold ";
-				}
-				ctx.font = `${fontStyle}${Math.round(fontSize)}px sans-serif`;
-				
-				// Set text alignment
-				if (btnAlignLeft && btnAlignLeft.classList.contains("active")) {
-					ctx.textAlign = "left";
-				} else if (btnAlignRight && btnAlignRight.classList.contains("active")) {
-					ctx.textAlign = "right";
-				} else {
-					ctx.textAlign = "center";
-				}
-				ctx.textBaseline = "alphabetic";
-				
-				// Split text into lines and calculate positioning
-				const lines = text.split('\n');
-				const lineHeight = fontSize * 1.2;  // Line spacing
-				const totalTextHeight = (lines.length - 1) * lineHeight;
-				
-				const printableWidthCenter = marginLeftPx + printableWidth / 2;
-				const printableWidthLeft = marginLeftPx + fontSize * 0.2;
-				const printableWidthRight = marginLeftPx + printableWidth - fontSize * 0.2;
-				const textCenterY = marginTopPx + printableHeight / 2;
-				
-				// Draw each line with alignment support
-				lines.forEach((line, index) => {
-					const y = textCenterY - totalTextHeight / 2 + (index * lineHeight) + fontSize * 0.35;
-					let x;
-					if (btnAlignLeft && btnAlignLeft.classList.contains("active")) {
-						x = printableWidthLeft;
-					} else if (btnAlignRight && btnAlignRight.classList.contains("active")) {
-						x = printableWidthRight;
-					} else {
-						x = printableWidthCenter;
-					}
-					ctx.fillText(line, x, y);
-				});
-				
-				// Restore context
-				ctx.restore();
+			
+			// Initialize canvas when DOM is ready
+			function initializeCanvases() {
+				updateLabelSize();
+				updateCanvasText();
 			}
 			
-			// Initialize canvas immediately
-			updateLabelSize();
-			updateCanvasText();
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', initializeCanvases);
+			} else {
+				initializeCanvases();
+			}
 			
 			// Function to create a rotated canvas for printing (without margins)
 			// The printer expects the image rotated 90 degrees clockwise
