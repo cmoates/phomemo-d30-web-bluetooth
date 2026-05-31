@@ -375,14 +375,14 @@ class UnifiedPrintPreview {
 			}
 			
 			if (layout === 'single') {
-				// Use as much space as possible, preferring height for tall labels
-				const maxSize = Math.max(printArea.width, printArea.height) * 0.9;
-				const qrImage = new Konva.Image({
-					image: tempCanvas,
-					x: printArea.x + (printArea.width - maxSize) / 2,
-					y: printArea.y + (printArea.height - maxSize) / 2,
-					width: maxSize,
-					height: maxSize
+			// Use as much height as possible while fitting within both dimensions
+			const qrSize = Math.min(printArea.width, printArea.height) * 0.9;
+			const qrImage = new Konva.Image({
+				image: tempCanvas,
+				x: printArea.x + (printArea.width - qrSize) / 2,
+				y: printArea.y + (printArea.height - qrSize) / 2,
+				width: qrSize,
+				height: qrSize
 				});
 				manager.contentLayer.add(qrImage);
 			} else {
