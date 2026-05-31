@@ -475,7 +475,7 @@ class UnifiedPrintPreview {
 			const fontSizeMm = parseFloat(inputQRTextSize.value) || 4;
 			const fontSize = fontSizeMm * this.PIXELS_PER_MM;
 			
-			// Use Konva's built-in text wrapping
+			// Use Konva's text with word wrapping on spaces and newlines
 			const textNode = new Konva.Text({
 				x: textArea.x + 8,
 				y: textArea.y + 8,
@@ -485,9 +485,7 @@ class UnifiedPrintPreview {
 				fill: '#000000',
 				align: 'left',
 				width: textArea.width - 16,
-				height: textArea.height - 16,
-				wrap: 'word',
-				ellipsis: false
+				wrap: 'word'
 			});
 			
 			manager.contentLayer.add(textNode);
