@@ -974,6 +974,9 @@
 			function initializeCanvasManager(canvasId, contentRenderer) {
 				if (!canvasManagers[canvasId]) {
 					canvasManagers[canvasId] = new CanvasManager(canvasId, contentRenderer);
+				} else if (contentRenderer) {
+					// Update renderer if manager already exists
+					canvasManagers[canvasId].contentRenderer = contentRenderer;
 				}
 				return canvasManagers[canvasId];
 			}
@@ -1047,40 +1050,52 @@
 					
 					// Determine text alignment from button states
 					let textAlign = 'center';
-					const alignButtons = document.querySelectorAll('.align-btn');
-					alignButtons.forEach(btn => {
-						if (btn.classList.contains('active')) {
-							if (btn.innerHTML.includes('left')) textAlign = 'left';
-							else if (btn.innerHTML.includes('center')) textAlign = 'center';
-							else if (btn.innerHTML.includes('right')) textAlign = 'right';
-						}
-					});
+					const btnAlignLeft = document.getElementById('btnAlignLeft');
+					const btnAlignCenter = document.getElementById('btnAlignCenter');
+					const btnAlignRight = document.getElementById('btnAlignRight');
 					
+					if (btnAlignLeft && btnAlignLeft.classList.contains('active')) {
+						textAlign = 'left';
+					} else if (btnAlignRight && btnAlignRight.classList.contains('active')) {
+						textAlign = 'right';
+					} else {
+						textAlign = 'center';
+					}
+					
+					// Render each line with proper alignment
 					lines.forEach((line, index) => {
 						const y = startY + (index * lineHeight);
-						let x = printArea.x + printArea.width / 2;
-						
-						if (textAlign === 'left') x = printArea.x + 10;
-						else if (textAlign === 'right') x = printArea.x + printArea.width - 10;
 						
 						const textNode = new Konva.Text({
-							x: x,
+							x: printArea.x,
 							y: y,
 							text: line,
 							fontSize: fontSize,
 							fontFamily: 'Arial',
 							fill: '#000000',
 							align: textAlign,
-							width: printArea.width - 20
+							width: printArea.width,
+							wrap: 'word'
 						});
 						
 						contentLayer.add(textNode);
 					});
 				};
 			}
+			}
+			
+			// Global renderers that can be updated
+			const renderers = {
+				canvas: null,
+				canvasBarcode: null,
+				canvasImage: null,
+				canvasQR: null,
+				canvasQRText: null
+			};
 			
 			function updateCanvasText() {
-				const manager = initializeCanvasManager('canvas', createTextRenderer());
+				renderers.canvas = createTextRenderer();
+				const manager = initializeCanvasManager('canvas', renderers.canvas);
 				manager.render();
 			}
 			
