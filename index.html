@@ -886,10 +886,12 @@
 					const manager = window.printPreview.managers[canvasId];
 					if (manager && manager.stage) {
 						try {
-							// Try to get the internal canvas from Konva Stage
-							displayCanvas = manager.stage.getCanvas()._canvas || manager.stage.getCanvas();
+							// Get the internal buffer canvas from Konva Stage where rendered content is drawn
+							const bufferCanvas = manager.stage.bufferCanvas;
+							// Access the actual HTMLCanvas element wrapped inside Konva's Canvas object
+							displayCanvas = bufferCanvas._canvas || bufferCanvas;
 						} catch(e) {
-							console.warn("Failed to get Konva canvas:", e);
+							console.warn("Failed to get Konva bufferCanvas:", e);
 						}
 					}
 				}
