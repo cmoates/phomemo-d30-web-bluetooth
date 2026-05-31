@@ -438,6 +438,13 @@ class UnifiedPrintPreview {
 					const qrImage = new Konva.Image({
 						image: tempCanvas,
 						x: qrArea.x,
+						y: qrArea.y + (qrArea.height - qrSize) / 2,
+						width: qrSize,
+						height: qrSize
+					});
+					manager.contentLayer.add(qrImage);
+					manager.contentLayer.draw();
+				}
 			});
 		}
 		
