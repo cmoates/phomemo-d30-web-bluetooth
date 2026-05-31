@@ -1353,8 +1353,7 @@
 						barcodeHeightRatio = 0.4; // EAN needs to be smaller - 40%
 					} else if (formatUpper === "CODE128") {
 							jsbarFormat = "CODE128";
-						}
-						
+						barcodeHeightRatio = 0.75; // CODE128 can be larger - 75% of height
 						if (!isValid) {
 							// Show error message
 							ctx.fillStyle = "#999";
