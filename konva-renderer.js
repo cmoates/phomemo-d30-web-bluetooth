@@ -166,10 +166,9 @@ class UnifiedPrintPreview {
 		
 		lines.forEach((line, index) => {
 			const y = startY + (index * lineHeight);
-			const x = printArea.x + printArea.width / 2;
 			
 			const textNode = new Konva.Text({
-				x: x,
+				x: printArea.x,
 				y: y,
 				text: line || ' ',
 				fontSize: fontSize,
