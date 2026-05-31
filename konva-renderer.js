@@ -354,7 +354,7 @@ class UnifiedPrintPreview {
 		if (!inputQR) return;
 		
 		const data = inputQR.value || 'https://example.com';
-		const layout = inputQRLayout?.value || 'single';
+		const numCodes = parseInt(inputQRLayout?.value || '1');
 		
 		const tempCanvas = document.createElement('canvas');
 		
@@ -374,30 +374,21 @@ class UnifiedPrintPreview {
 				return;
 			}
 			
-			if (layout === 'single') {
-			// Use as much height as possible while fitting within both dimensions
-			const qrSize = Math.min(printArea.width, printArea.height) * 0.98;
-			const qrImage = new Konva.Image({
-				image: tempCanvas,
-				x: printArea.x + (printArea.width - qrSize) / 2,
-				y: printArea.y + (printArea.height - qrSize) / 2,
-				width: qrSize,
-				height: qrSize
+			// Calculate QR size based on number of codes
+			// Each code gets equal width and height
+			const widthPerCode = printArea.width / numCodes;
+			const qrSize = Math.min(widthPerCode, printArea.height) * 0.95;
+			
+			// Render QR codes side by side
+			for (let i = 0; i < numCodes; i++) {
+				const qrImage = new Konva.Image({
+					image: tempCanvas,
+					x: printArea.x + (i * widthPerCode) + (widthPerCode - qrSize) / 2,
+					y: printArea.y + (printArea.height - qrSize) / 2,
+					width: qrSize,
+					height: qrSize
 				});
 				manager.contentLayer.add(qrImage);
-			} else {
-				// Three side by side
-				const qrSize = (printArea.width / 3) * 0.95;
-				for (let i = 0; i < 3; i++) {
-					const qrImage = new Konva.Image({
-						image: tempCanvas,
-						x: printArea.x + (i * printArea.width / 3) + (printArea.width / 3 - qrSize) / 2,
-						y: printArea.y + (printArea.height - qrSize) / 2,
-						width: qrSize,
-						height: qrSize
-					});
-					manager.contentLayer.add(qrImage);
-				}
 			}
 			
 			manager.contentLayer.draw();

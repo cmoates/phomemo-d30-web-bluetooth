@@ -89,6 +89,16 @@
 						qrTextSizeUpdateInProgress = false;
 					});
 				}
+				
+				// QR Code layout slider display
+				const qrLayoutSlider = document.getElementById('inputQRLayout');
+				const qrLayoutValue = document.getElementById('qrLayoutValue');
+				
+				if (qrLayoutSlider && qrLayoutValue) {
+					qrLayoutSlider.addEventListener('input', (e) => {
+						qrLayoutValue.textContent = qrLayoutSlider.value;
+					});
+				}
 			}
 			
 			// Call when DOM is ready
@@ -403,11 +413,11 @@
 						<div class="col-lg-6">
 							<h6 class="text-muted mb-3">QR code data</h6>
 							<div class="mb-3">
-								<label for="inputQRLayout" class="form-label">Layout</label>
-								<select class="form-select" id="inputQRLayout">
-									<option value="single">Single QR code</option>
-									<option value="multiple">Three</option>
-								</select>
+								<label for="inputQRLayout" class="form-label">Number of codes</label>
+								<div class="d-flex align-items-center gap-2">
+									<input type="range" class="form-range flex-grow-1" id="inputQRLayout" min="1" max="3" value="1" step="1" />
+									<span id="qrLayoutValue" class="text-muted">1</span>
+								</div>
 							</div>
 							<label for="inputQR" class="form-label text-muted mb-3">QR code data</label>
 							<input type="text" class="form-control" value="https://example.com" id="inputQR" />
