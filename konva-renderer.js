@@ -469,64 +469,28 @@ class UnifiedPrintPreview {
 			});
 		}
 		
-		// Render text with word wrapping on spaces and newlines
+		// Render text 
 		if (inputQRText && inputQRTextSize) {
-			const rawText = inputQRText.value || 'Label';
+			const text = inputQRText.value || 'Label';
 			const fontSizeMm = parseFloat(inputQRTextSize.value) || 4;
 			const fontSize = fontSizeMm * this.PIXELS_PER_MM;
-			const maxWidth = textArea.width - 16;
 			
-			// Create temporary canvas for text measurement
-			const tempCanvas = document.createElement('canvas');
-			tempCanvas.width = 1000;
-			tempCanvas.height = 100;
-			const context = tempCanvas.getContext('2d');
-			context.font = `${Math.ceil(fontSize)}px Arial`;
-			
-			// Split text into lines on newlines first
-			const lines = rawText.split('\n');
-			const wrappedLines = [];
-			
-			lines.forEach(line => {
-				// Split on spaces to get words
-				const words = line.split(' ');
-				let currentLine = '';
-				
-				words.forEach((word) => {
-					const testLine = currentLine ? currentLine + ' ' + word : word;
-					const metrics = context.measureText(testLine);
-					
-					if (metrics.width > maxWidth && currentLine) {
-						wrappedLines.push(currentLine);
-						currentLine = word;
-					} else {
-						currentLine = testLine;
-					}
-				});
-				
-				if (currentLine) {
-					wrappedLines.push(currentLine);
-				}
+			// Use Konva's built-in text wrapping
+			const textNode = new Konva.Text({
+				x: textArea.x + 8,
+				y: textArea.y + 8,
+				text: text,
+				fontSize: fontSize,
+				fontFamily: 'Arial, sans-serif',
+				fill: '#000000',
+				align: 'left',
+				width: textArea.width - 16,
+				height: textArea.height - 16,
+				wrap: 'word',
+				ellipsis: false
 			});
 			
-			// Render wrapped text lines
-			const lineHeight = fontSize * 1.2;
-			const totalHeight = lineHeight * wrappedLines.length;
-			let startY = textArea.y + Math.max(0, (textArea.height - totalHeight) / 2);
-			
-			wrappedLines.forEach((line, index) => {
-				const textNode = new Konva.Text({
-					x: textArea.x + 8,
-					y: startY + (index * lineHeight),
-					text: line,
-					fontSize: fontSize,
-					fontFamily: 'Arial, sans-serif',
-					fill: '#000000',
-					align: 'left'
-				});
-				manager.contentLayer.add(textNode);
-			});
-			
+			manager.contentLayer.add(textNode);
 			manager.contentLayer.draw();
 		}
 	}
