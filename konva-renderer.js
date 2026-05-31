@@ -4,8 +4,11 @@
  * scaling, sizing, and rendering logic.
  */
 
+console.log('[konva-renderer] Script starting to load');
+
 class UnifiedPrintPreview {
 	constructor() {
+		console.log('[konva-renderer] UnifiedPrintPreview constructor called');
 		// Constants
 		this.PIXELS_PER_MM = 8;
 		this.HORIZONTAL_MARGIN_MM = 1;
@@ -573,11 +576,12 @@ class CanvasManager {
 }
 
 // Initialize globally
-let printPreview = null;
+window.printPreview = null;
 
 function initializePrintPreview() {
-	if (printPreview) return;
-	printPreview = new UnifiedPrintPreview();
+	if (window.printPreview) return;
+	window.printPreview = new UnifiedPrintPreview();
+	console.log('[konva-renderer] printPreview initialized:', window.printPreview);
 	
 	// Wire up content update listeners
 	setupEventListeners();
@@ -669,20 +673,20 @@ function setupEventListeners() {
 }
 
 // Initialize when DOM is ready
-if (document.readyState === 'loading') {
-	document.addEventListener('DOMContentLoaded', () => {
-		initializePrintPreview();
-		// Signal that the module has initialized
-		if (typeof window.moduleInitialized === 'function') {
-			window.moduleInitialized();
-		}
-	});
-} else {
+// Always wait for DOMContentLoaded even if readyState says loading is done,
+// because with defer attribute we're guaranteed to run after HTML parsing
+function initializeModule() {
 	initializePrintPreview();
 	// Signal that the module has initialized
 	if (typeof window.moduleInitialized === 'function') {
 		window.moduleInitialized();
 	}
+}
+
+if (document.readyState === 'loading') {
+	document.addEventListener('DOMContentLoaded', initializeModule);
+} else {
+	initializeModule();
 }
 
 // Global function for HTML onclick handlers
