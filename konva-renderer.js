@@ -195,15 +195,16 @@ class UnifiedPrintPreview {
 		
 		if (!inputBarcode || !inputBarcodeType) return;
 		
-		const data = inputBarcode.value || '123456';
-		const format = inputBarcodeType.value.toUpperCase();
+		const data = (inputBarcode.value || '123456').trim();
+		const format = (inputBarcodeType.value || '').toUpperCase();
 		
-		// Validate format
+		// Validate format and convert to JsBarcode format names
 		let jsbarFormat = format;
 		let isValid = true;
 		
 		if (format === 'UPC') {
 			isValid = /^\d{12}$/.test(data);
+			jsbarFormat = 'UPC';
 		} else if (format === 'EAN') {
 			if (/^\d{13}$/.test(data)) {
 				jsbarFormat = 'EAN13';
@@ -214,13 +215,17 @@ class UnifiedPrintPreview {
 			}
 		} else if (format === 'CODE128') {
 			isValid = data.length > 0;
+			jsbarFormat = 'CODE128';
+		} else {
+			// Default or unknown format
+			isValid = data.length > 0;
 		}
 		
 		if (!isValid) {
 			const errorMsg = new Konva.Text({
 				x: printArea.x,
 				y: printArea.y + printArea.height / 2 - 10,
-				text: 'Invalid barcode data',
+				text: 'Invalid barcode data for ' + format,
 				fontSize: 12,
 				fill: '#999',
 				align: 'center',
@@ -270,10 +275,11 @@ class UnifiedPrintPreview {
 			manager.contentLayer.draw();
 		} catch (err) {
 			console.error('Barcode error:', err);
+			const errorText = err?.message || (typeof err === 'string' ? err : 'Failed to generate barcode');
 			const errorMsg = new Konva.Text({
 				x: printArea.x,
 				y: printArea.y + printArea.height / 2 - 10,
-				text: 'Barcode error: ' + err.message,
+				text: 'Barcode error: ' + errorText,
 				fontSize: 10,
 				fill: '#999',
 				align: 'center',
