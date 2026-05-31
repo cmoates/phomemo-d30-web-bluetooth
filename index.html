@@ -612,17 +612,19 @@
 			referrerpolicy="no-referrer"
 			defer
 		></script>
+		<!-- JsBarcode library (sync, loads before konva-renderer.js) -->
 		<script
 			src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"
 			integrity="sha512-k2wo/BkbloaRU7gc/RkCekHr4IOVe10kYxJ/Q8dRPl7u3YshAQmg3WfZtIcseEk+nGBdK03fHBeLgXTxRmWCLQ=="
 			crossorigin="anonymous"
 			referrerpolicy="no-referrer"
-			defer
 		></script>
+		<!-- QRCode library (sync, loads before konva-renderer.js) -->
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js" integrity="sha512-PEhlWBZBrQL7flpJPY8lXx8tIN7HWX912GzGhFTDqA3iWFrakVH3lVHomCoU9BhfKzgxfEk6EG2C3xej+9srOQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		<!-- Konva library (sync, must load before konva-renderer.js) -->
 		<script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
-		<script src="konva-renderer.js" defer></script>
-		<script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
+		<!-- Unified Konva renderer (async loading) -->
+		<script src="konva-renderer.js?v=2"></script>
 		<!-- Module script disabled - using fallback HTML initialization instead -->
 		<!-- <script type="module" src="index.js" defer></script> -->
 		<script>
@@ -836,7 +838,7 @@
 						});
 					}
 				}
-			}, 500);
+			}, 2000);
 			
 			// Listen for module to update status (module will clear this timeout)
 			window.moduleInitialized = () => {
@@ -868,16 +870,22 @@
 				
 				const canvasId = tabCanvasMap[tabTarget] || "canvas";
 				
-				// Get Konva canvas from the manager
+				// Get canvas from Konva manager first (if it's available)
 				let displayCanvas = null;
-				if (printPreview && printPreview.managers[canvasId]) {
-					const konvaStage = printPreview.managers[canvasId].stage;
-					if (konvaStage) {
-						displayCanvas = konvaStage.canvas._canvas;
+				
+				if (window.printPreview && window.printPreview.managers && window.printPreview.managers[canvasId]) {
+					const manager = window.printPreview.managers[canvasId];
+					if (manager && manager.stage) {
+						try {
+							// Try to get the internal canvas from Konva Stage
+							displayCanvas = manager.stage.getCanvas()._canvas || manager.stage.getCanvas();
+						} catch(e) {
+							console.warn("Failed to get Konva canvas:", e);
+						}
 					}
 				}
 				
-				// Fallback to DOM canvas if Konva not available
+				// Fallback to DOM canvas element
 				if (!displayCanvas) {
 					displayCanvas = document.querySelector("#" + canvasId);
 				}

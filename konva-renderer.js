@@ -670,9 +670,19 @@ function setupEventListeners() {
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
-	document.addEventListener('DOMContentLoaded', initializePrintPreview);
+	document.addEventListener('DOMContentLoaded', () => {
+		initializePrintPreview();
+		// Signal that the module has initialized
+		if (typeof window.moduleInitialized === 'function') {
+			window.moduleInitialized();
+		}
+	});
 } else {
 	initializePrintPreview();
+	// Signal that the module has initialized
+	if (typeof window.moduleInitialized === 'function') {
+		window.moduleInitialized();
+	}
 }
 
 // Global function for HTML onclick handlers
