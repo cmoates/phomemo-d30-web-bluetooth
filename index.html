@@ -736,22 +736,46 @@
 						btnConnect.hasListener = true;
 						btnConnect.addEventListener("click", async () => {
 							try {
-								statusText.innerHTML = "<i class='bi bi-hourglass-split'></i> Connecting...";
+								statusText.innerHTML = "<i class='bi bi-hourglass-split'></i> Connecting... (looking for D30 devices)";
 								btnConnect.disabled = true;
 								
-								const device = await navigator.bluetooth.requestDevice({
-									filters: [
-										{ namePrefix: "D30" }
-									],
-									optionalServices: ["0000ff00-0000-1000-8000-00805f9b34fb"]
-								});
+								console.log("Requesting Bluetooth device with name prefix D30...");
 								
+								// Check if Bluetooth API is available
+								if (!navigator.bluetooth) {
+									throw new Error("Web Bluetooth API not available in this browser. Use Chrome, Edge, or Opera on a system with Bluetooth hardware.");
+								}
+								
+								// Create a timeout promise that rejects after 30 seconds
+								const timeoutPromise = new Promise((_, reject) => 
+									setTimeout(() => reject(new Error("Device selection timed out after 30 seconds. Make sure your D30 printer is powered on and in pairing mode.")), 30000)
+								);
+								
+								// Race between the actual request and the timeout
+								const device = await Promise.race([
+									navigator.bluetooth.requestDevice({
+										filters: [
+											{ namePrefix: "D30" }
+										],
+										optionalServices: ["0000ff00-0000-1000-8000-00805f9b34fb"]
+									}),
+									timeoutPromise
+								]);
+								
+								console.log("Device selected:", device.name);
 								bluetoothDevice = device;
+								
+								statusText.innerHTML = "<i class='bi bi-hourglass-split'></i> Connecting to printer...";
 								
 								// Get the GATT service and characteristic
 								const server = await device.gatt.connect();
+								console.log("GATT server connected");
+								
 								const service = await server.getPrimaryService("0000ff00-0000-1000-8000-00805f9b34fb");
+								console.log("Service found");
+								
 								bluetoothCharacteristic = await service.getCharacteristic("0000ff02-0000-1000-8000-00805f9b34fb");
+								console.log("Characteristic found, connected successfully");
 								
 								statusEl.className = "alert alert-success mb-3 d-flex align-items-center justify-content-between";
 								statusText.innerHTML = `<i class='bi bi-check-circle-fill'></i> Connected to <strong>${device.name}</strong>`;
@@ -778,8 +802,19 @@
 								}
 							} catch (err) {
 								console.error("Bluetooth error:", err);
-								statusEl.className = "alert alert-danger mb-3 d-flex align-items-center justify-content-between";
-								statusText.innerHTML = `<i class='bi bi-exclamation-circle'></i> Error: ${err.message}`;
+								
+								// Check if it's a NotFoundError (user cancelled or no devices found)
+								if (err.name === "NotFoundError") {
+									statusEl.className = "alert alert-warning mb-3 d-flex align-items-center justify-content-between";
+									statusText.innerHTML = "<i class='bi bi-exclamation-triangle'></i> No D30 devices found. Make sure printer is powered on and in pairing mode.";
+								} else if (err.name === "SecurityError") {
+									statusEl.className = "alert alert-danger mb-3 d-flex align-items-center justify-content-between";
+									statusText.innerHTML = "<i class='bi bi-exclamation-circle'></i> Permission denied. Web Bluetooth requires HTTPS or localhost.";
+								} else {
+									statusEl.className = "alert alert-danger mb-3 d-flex align-items-center justify-content-between";
+									statusText.innerHTML = `<i class='bi bi-exclamation-circle'></i> ${err.message}`;
+								}
+								
 								btnConnect.disabled = false;
 								bluetoothDevice = null;
 								bluetoothCharacteristic = null;
