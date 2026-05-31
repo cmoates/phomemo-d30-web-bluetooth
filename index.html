@@ -1169,14 +1169,14 @@
 					if (inputFontSizeSlider) {
 						inputFontSizeSlider.value = inputFontSize.value;
 					}
-					updateCanvasText();
 				});
 				if (inputFontSizeSlider) inputFontSizeSlider.addEventListener("input", () => {
 					// Sync text input with slider
 					if (inputFontSize) {
 						inputFontSize.value = inputFontSizeSlider.value;
+						// Dispatch event so Konva listeners pick it up
+						inputFontSize.dispatchEvent(new Event('input', { bubbles: true }));
 					}
-					updateCanvasText();
 				});
 				
 				// Add event listeners for style & alignment buttons
@@ -1632,14 +1632,14 @@
 					if (inputQRTextSizeSlider) {
 						inputQRTextSizeSlider.value = inputQRTextSize.value;
 					}
-					updateCanvasQRText();
 				});
 				if (inputQRTextSizeSlider) inputQRTextSizeSlider.addEventListener("input", () => {
 					// Sync text input with slider
 					if (inputQRTextSize) {
 						inputQRTextSize.value = inputQRTextSizeSlider.value;
+						// Dispatch event so Konva listeners pick it up
+						inputQRTextSize.dispatchEvent(new Event('input', { bubbles: true }));
 					}
-					updateCanvasQRText();
 				});
 				
 				// Ensure canvas has no transform applied

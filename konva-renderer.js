@@ -676,7 +676,7 @@ function setupEventListeners() {
 	});
 	
 	// QR + Text tab inputs
-	const qrTextInputs = ['inputQRTextData', 'inputQRText', 'inputQRTextSize'];
+	const qrTextInputs = ['inputQRTextData', 'inputQRText', 'inputQRTextSize', 'inputQRTextSizeSlider'];
 	qrTextInputs.forEach(id => {
 		const el = document.getElementById(id);
 		if (el) {
