@@ -713,8 +713,7 @@
 			};
 			
 			// Fallback initialization if module doesn't set it up
-			let initTimeout = setTimeout(() => {
-				console.log("Module initialization timeout, running fallback");
+			function setupFallbackInitialization() {
 				const statusEl = document.querySelector("#connectionStatus");
 				const statusText = statusEl?.querySelector("#statusText");
 				const btnConnect = document.querySelector("#btnConnect");
@@ -838,11 +837,21 @@
 						});
 					}
 				}
-			}, 2000);
+			}
+			
+			// Set up fallback after a short delay to allow module to initialize
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', () => {
+					setTimeout(setupFallbackInitialization, 2000);
+				});
+			} else {
+				setTimeout(setupFallbackInitialization, 2000);
+			}
 			
 			// Listen for module to update status (module will clear this timeout)
 			window.moduleInitialized = () => {
-				clearTimeout(initTimeout);
+				// Module is ready, no need for fallback
+				console.log("Module initialized successfully");
 			};
 		</script>
 		<script>
