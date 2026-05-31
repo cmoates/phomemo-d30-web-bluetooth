@@ -434,17 +434,10 @@ class UnifiedPrintPreview {
 			
 			window.QRCode.toCanvas(tempCanvas, data, { width: 200 }, (err) => {
 				if (!err) {
-				const qrSize = Math.min(qrArea.width, qrArea.height) * 0.99;
+					const qrSize = qrArea.height * 0.98;
 					const qrImage = new Konva.Image({
 						image: tempCanvas,
-						x: qrArea.x + (qrArea.width - qrSize) / 2,
-						y: qrArea.y + (qrArea.height - qrSize) / 2,
-						width: qrSize,
-						height: qrSize
-					});
-					manager.contentLayer.add(qrImage);
-					manager.contentLayer.draw();
-				}
+						x: qrArea.x,
 			});
 		}
 		
