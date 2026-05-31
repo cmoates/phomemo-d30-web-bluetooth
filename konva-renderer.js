@@ -434,7 +434,7 @@ class UnifiedPrintPreview {
 			
 			window.QRCode.toCanvas(tempCanvas, data, { width: 200 }, (err) => {
 				if (!err) {
-					const qrSize = Math.min(qrArea.width, qrArea.height) * 0.9;
+					const qrSize = Math.min(qrArea.width, qrArea.height) * 0.98;
 					const qrImage = new Konva.Image({
 						image: tempCanvas,
 						x: qrArea.x + (qrArea.width - qrSize) / 2,
@@ -455,14 +455,15 @@ class UnifiedPrintPreview {
 			const fontSize = fontSizeMm * this.PIXELS_PER_MM;
 			
 			const textNode = new Konva.Text({
-				x: textArea.x,
+				x: textArea.x + 8,
 				y: textArea.y + (textArea.height - fontSize) / 2,
 				text: text,
 				fontSize: fontSize,
 				fontFamily: 'Arial, sans-serif',
 				fill: '#000000',
-				align: 'center',
-				width: textArea.width
+				align: 'left',
+				width: textArea.width - 16,
+				wrap: 'word'
 			});
 			
 			manager.contentLayer.add(textNode);
