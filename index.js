@@ -9,15 +9,22 @@ const $all = document.querySelectorAll.bind(document);
 const labelSize = { width: 40, height: 12 };
 
 const updateLabelSize = (canvas) => {
-	const inputWidth = $("#inputWidth").valueAsNumber;
-	const inputHeight = $("#inputHeight").valueAsNumber;
-	if (isNaN(inputWidth) || isNaN(inputHeight)) {
+	const inputWidth = $("#inputWidth");
+	const inputHeight = $("#inputHeight");
+	
+	if (!inputWidth || !inputHeight) {
+		return;  // Elements not ready yet
+	}
+	
+	const widthValue = inputWidth.valueAsNumber;
+	const heightValue = inputHeight.valueAsNumber;
+	if (isNaN(widthValue) || isNaN(heightValue)) {
 		handleError("label size invalid");
 		return;
 	}
 
-	labelSize.width = inputWidth;
-	labelSize.height = inputHeight;
+	labelSize.width = widthValue;
+	labelSize.height = heightValue;
 
 	// Image sent to printer is printed top to bottom, so reverse width and height
 	canvas.width = labelSize.height * 8;
@@ -25,8 +32,17 @@ const updateLabelSize = (canvas) => {
 };
 
 const updateCanvasText = (canvas) => {
-	const text = $("#inputText").value;
-	const fontSize = $("#inputFontSize").valueAsNumber;
+	if (!canvas) return;
+	
+	const inputText = $("#inputText");
+	const inputFontSize = $("#inputFontSize");
+	
+	if (!inputText || !inputFontSize) {
+		return;  // Elements not ready yet
+	}
+	
+	const text = inputText.value;
+	const fontSize = inputFontSize.valueAsNumber;
 	if (isNaN(fontSize)) {
 		handleError("font size invalid");
 		return;
@@ -41,20 +57,43 @@ const updateCanvasText = (canvas) => {
 	ctx.rotate(Math.PI / 2);
 
 	ctx.fillStyle = "#000";
-	drawText(ctx, text, {
-		x: -canvas.height / 2,
-		y: -canvas.width / 2,
-		width: canvas.height,
-		height: canvas.width,
-		font: "sans-serif",
-		fontSize,
-	});
+	
+	// Try to use drawText from canvas-txt, fallback to basic text if not available
+	try {
+		if (typeof drawText !== 'undefined') {
+			drawText(ctx, text, {
+				x: -canvas.height / 2,
+				y: -canvas.width / 2,
+				width: canvas.height,
+				height: canvas.width,
+				font: "sans-serif",
+				fontSize,
+			});
+		} else {
+			// Fallback: use basic canvas text rendering
+			ctx.font = `${fontSize}px sans-serif`;
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+			ctx.fillText(text, 0, 0);
+		}
+	} catch (e) {
+		// If drawText fails, use fallback
+		ctx.font = `${fontSize}px sans-serif`;
+		ctx.textAlign = "center";
+		ctx.textBaseline = "middle";
+		ctx.fillText(text, 0, 0);
+	}
 
 	ctx.restore();
 };
 
 const updateCanvasBarcode = (canvas) => {
-	const barcodeData = $("#inputBarcode").value;
+	if (!canvas) return;
+	
+	const inputBarcode = $("#inputBarcode");
+	if (!inputBarcode) return;
+	
+	const barcodeData = inputBarcode.value;
 	const image = document.createElement("img");
 	image.addEventListener("load", () => {
 		const ctx = canvas.getContext("2d");
@@ -107,8 +146,13 @@ const drawImageToCanvas = (ctx, url, doScale = true) => {
 };
 
 const updateCanvasImage = (canvas) => {
+	if (!canvas) return;
+	
 	const ctx = canvas.getContext("2d");
-	const file = $("#inputImage").files[0];
+	const inputImage = $("#inputImage");
+	if (!inputImage) return;
+	
+	const file = inputImage.files[0];
 	if (!file) {
 		ctx.fillStyle = "#fff";
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -127,16 +171,29 @@ const updateCanvasImage = (canvas) => {
 };
 
 const updateCanvasQR = async (canvas) => {
-	const data = $("#inputQR").value;
+	if (!canvas) return;
+	
+	const inputQR = $("#inputQR");
+	if (!inputQR) return;
+	
+	const data = inputQR.value;
 	const ctx = canvas.getContext("2d");
 	const qrImg = await QRCode.toDataURL(data, { width: canvas.width - 8, margin: 2 });
 	drawImageToCanvas(ctx, qrImg, false);
 };
 
 const updateCanvasQRText = async (canvas) => {
-	const data = $("#inputQRTextData").value;
-	const text = $("#inputQRText").value;
-	const fontSizeInput = $("#inputQRTextSize").valueAsNumber;
+	if (!canvas) return;
+	
+	const inputQRTextData = $("#inputQRTextData");
+	const inputQRText = $("#inputQRText");
+	const inputQRTextSize = $("#inputQRTextSize");
+	
+	if (!inputQRTextData || !inputQRText || !inputQRTextSize) return;
+	
+	const data = inputQRTextData.value;
+	const text = inputQRText.value;
+	const fontSizeInput = inputQRTextSize.valueAsNumber;
 	const ctx = canvas.getContext("2d");
 	const labelWidth = canvas.height;
 	const labelHeight = canvas.width;
@@ -185,14 +242,26 @@ const updateCanvasQRText = async (canvas) => {
 			const textWidth = Math.max(0, right - textX);
 			const textHeight = Math.max(0, bottom - top);
 			if (textWidth > 0 && textHeight > 0) {
-				drawText(ctx, text, {
-					x: textX,
-					y: textY,
-					width: textWidth,
-					height: textHeight,
-					font: "sans-serif",
-					fontSize,
-				});
+				try {
+					if (typeof drawText !== 'undefined') {
+						drawText(ctx, text, {
+							x: textX,
+							y: textY,
+							width: textWidth,
+							height: textHeight,
+							font: "sans-serif",
+							fontSize,
+						});
+					} else {
+						// Fallback: use basic canvas text rendering
+						ctx.font = `${fontSize}px sans-serif`;
+						ctx.fillText(text, textX, textY);
+					}
+				} catch (e) {
+					// If drawText fails, use fallback
+					ctx.font = `${fontSize}px sans-serif`;
+					ctx.fillText(text, textX, textY);
+				}
 			}
 		}
 
@@ -215,6 +284,8 @@ const handleError = (err) => {
 
 document.addEventListener("DOMContentLoaded", function () {
 	const canvas = document.querySelector("#canvas");
+	
+	if (!canvas) return;  // Canvas must exist
 
 	document.addEventListener("shown.bs.tab", (e) => {
 		if (e.target.id === "nav-text-tab") updateCanvasText(canvas);
@@ -224,14 +295,20 @@ document.addEventListener("DOMContentLoaded", function () {
 		else if (e.target.id === "nav-qr-text-tab") updateCanvasQRText(canvas);
 	});
 
-	$all("#inputWidth, #inputHeight").forEach((e) =>
-		e.addEventListener("input", () => updateLabelSize(canvas))
-	);
+	const inputWidthEl = $all("#inputWidth, #inputHeight");
+	if (inputWidthEl && inputWidthEl.length > 0) {
+		inputWidthEl.forEach((e) =>
+			e.addEventListener("input", () => updateLabelSize(canvas))
+		);
+	}
 	updateLabelSize(canvas);
 
-	$all("#inputText, #inputFontSize").forEach((e) =>
-		e.addEventListener("input", () => updateCanvasText(canvas))
-	);
+	const inputTextEl = $all("#inputText, #inputFontSize");
+	if (inputTextEl && inputTextEl.length > 0) {
+		inputTextEl.forEach((e) =>
+			e.addEventListener("input", () => updateCanvasText(canvas))
+		);
+	}
 	updateCanvasText(canvas);
 
 	$("#inputBarcode").addEventListener("input", () => updateCanvasBarcode(canvas));
@@ -271,7 +348,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 		// No device yet (or reconnect failed) — show the browser device picker
 		const device = await navigator.bluetooth.requestDevice({
-			acceptAllDevices: true,
+			filters: [
+				{ namePrefix: "D30" }
+			],
 			optionalServices: [SERVICE_UUID],
 		});
 

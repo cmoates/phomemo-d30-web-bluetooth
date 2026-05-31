@@ -1,0 +1,650 @@
+"use strict";
+
+// Aliases - module level
+const $ = document.querySelector.bind(document);
+const $all = document.querySelectorAll.bind(document);
+
+// State variables - module level
+const labelSize = { width: 40, height: 12 };
+let isUppercaseMode = false;
+let isBoldMode = false;
+let isItalicMode = false;
+
+// Helper: updateLabelSize
+const updateLabelSize = (canvas) => {
+	const inputWidth = $("#inputWidth").valueAsNumber;
+	const inputHeight = $("#inputHeight").valueAsNumber;
+	if (isNaN(inputWidth) || isNaN(inputHeight)) {
+		handleError("label size invalid");
+		return;
+	}
+
+	labelSize.width = inputWidth;
+	labelSize.height = inputHeight;
+
+	// Image sent to printer is printed top to bottom, so reverse width and height
+	canvas.width = labelSize.height * 8;
+	canvas.height = labelSize.width * 8;
+
+	// Update container size to match rotated canvas dimensions
+	const container = canvas.closest(".canvas-container");
+	if (container) {
+		container.style.width = canvas.height + "px";
+		container.style.height = canvas.width + "px";
+	}
+};
+
+// Helper: handleError
+const handleError = (err) => {
+	console.error(err);
+	const toast = bootstrap.Toast.getOrCreateInstance($("#errorToast"));
+	$("#errorText").textContent = err.toString();
+	toast.show();
+};
+
+// Main export: initialization function
+export default async function initApp() {
+	console.log(">>> initApp called");
+	const canvas = document.querySelector("#canvas");
+	if (!canvas) {
+		console.error("Canvas not found!");
+		return;
+	}
+
+const updateCanvasText = (canvas) => {
+	let text = $("#inputText").value;
+	const fontSize = $("#inputFontSize").valueAsNumber;
+	const repeatCount = $("#inputRepeatCount").valueAsNumber || 1;
+	if (isNaN(fontSize)) {
+		handleError("font size invalid");
+		return;
+	}
+
+	// Apply uppercase if enabled
+	if (isUppercaseMode) {
+		text = text.toUpperCase();
+	}
+
+	// Add newline if repeating and doesn't end with one
+	if (repeatCount > 1 && !text.endsWith("\n")) {
+		text = text + "\n";
+	}
+
+	// Repeat text and remove trailing newline from final result
+	const repeatedText = text.repeat(repeatCount).replace(/\n$/, "");
+
+	const ctx = canvas.getContext("2d");
+	ctx.fillStyle = "#fff";
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	ctx.save();
+	ctx.translate(canvas.width / 2, canvas.height / 2);
+	ctx.rotate(Math.PI / 2);
+
+	ctx.fillStyle = "#000";
+	
+	// Build font string with bold and italic
+	let fontStyle = "";
+	if (isItalicMode) fontStyle += "italic ";
+	let fontWeight = isBoldMode ? "700" : "400";
+	const fontString = `${fontStyle}${fontWeight} ${fontSize}px Roboto, Noto Emoji, sans-serif`;
+	
+	ctx.font = fontString;
+	
+	drawText(ctx, repeatedText, {
+		x: -canvas.height / 2,
+		y: -canvas.width / 2,
+		width: canvas.height,
+		height: canvas.width,
+		font: fontString,
+		fontSize,
+	});
+
+	ctx.restore();
+};
+
+const updateCanvasBarcode = (canvas) => {
+	const barcodeData = $("#inputBarcode").value;
+	const image = document.createElement("img");
+	image.addEventListener("load", () => {
+		const ctx = canvas.getContext("2d");
+		ctx.fillStyle = "#fff";
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+		ctx.save();
+		ctx.translate(canvas.width / 2, canvas.height / 2);
+		ctx.rotate(Math.PI / 2);
+
+		ctx.imageSmoothingEnabled = false;
+		ctx.drawImage(image, -image.width / 2, -image.height / 2);
+
+		ctx.restore();
+	});
+
+	JsBarcode(image, barcodeData, {
+		format: "CODE128",
+		width: 2,
+		height: labelSize.height * 7,
+		displayValue: false,
+	});
+};
+
+const drawImageToCanvas = (ctx, url, doScale = true) => {
+	const canvas = ctx.canvas;
+	const img = new Image();
+	img.addEventListener("load", () => {
+		ctx.fillStyle = "#fff";
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+		ctx.save();
+		ctx.translate(canvas.width / 2, canvas.height / 2);
+		ctx.rotate(Math.PI / 2);
+
+		ctx.imageSmoothingEnabled = false;
+		// draw image in center of canvas, scaled to fit
+		const scale = doScale ? Math.min(canvas.height / img.width, canvas.width / img.height) : 1;
+		const drawWidth = img.width * scale;
+		const drawHeight = img.height * scale;
+		ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+
+		ctx.restore();
+	});
+	img.addEventListener("error", () => {
+		handleError("failed to load image");
+	});
+
+	img.src = url;
+};
+
+const updateCanvasImage = (canvas) => {
+	const ctx = canvas.getContext("2d");
+	const file = $("#inputImage").files[0];
+	if (!file) {
+		ctx.fillStyle = "#fff";
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		return;
+	}
+
+	const reader = new FileReader();
+	reader.addEventListener("load", (e) => {
+		drawImageToCanvas(ctx, e.target.result);
+	});
+	reader.addEventListener("error", () => {
+		handleError("failed to read image file");
+	});
+
+	reader.readAsDataURL(file);
+};
+
+const updateCanvasQR = async (canvas) => {
+	const data = $("#inputQR").value;
+	const ctx = canvas.getContext("2d");
+	const qrImg = await QRCode.toDataURL(data, { width: canvas.width - 8, margin: 2 });
+	drawImageToCanvas(ctx, qrImg, false);
+};
+
+const updateCanvasQRText = async (canvas) => {
+	const data = $("#inputQRTextData").value;
+	const text = $("#inputQRText").value;
+	const fontSizeInput = $("#inputQRTextSize").valueAsNumber;
+	const ctx = canvas.getContext("2d");
+	const labelWidth = canvas.height;
+	const labelHeight = canvas.width;
+	const padding = 4;
+	const gap = 6;
+	const left = -labelWidth / 2 + padding;
+	const top = -labelHeight / 2 + padding;
+	const right = labelWidth / 2 - padding;
+	const bottom = labelHeight / 2 - padding;
+	const fallbackFontSize = Math.floor(labelHeight * 0.4);
+	const fontSize = isNaN(fontSizeInput)
+		? Math.max(10, Math.min(48, fallbackFontSize))
+		: Math.max(1, fontSizeInput);
+
+	ctx.fillStyle = "#fff";
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	const maxQrSize = Math.max(16, Math.min(labelHeight - padding * 2, labelWidth - padding * 2));
+	let qrSize = maxQrSize;
+	if (text.trim()) {
+		const minTextWidth = 32;
+		const availableForQr = right - left - gap - minTextWidth;
+		qrSize = Math.max(16, Math.min(maxQrSize, availableForQr));
+	}
+	const qrImg = await QRCode.toDataURL(data, { width: qrSize, margin: 1 });
+	const image = new Image();
+	image.addEventListener("load", () => {
+		ctx.translate(canvas.width / 2, canvas.height / 2);
+		ctx.rotate(Math.PI / 2);
+
+		ctx.imageSmoothingEnabled = false;
+		if (!text.trim()) {
+			const drawX = -labelWidth / 2 + (labelWidth - qrSize) / 2;
+			const drawY = -labelHeight / 2 + (labelHeight - qrSize) / 2;
+			ctx.drawImage(image, drawX, drawY, qrSize, qrSize);
+		} else {
+			const qrX = left;
+			const qrY = top;
+			ctx.drawImage(image, qrX, qrY, qrSize, qrSize);
+
+			ctx.fillStyle = "#000";
+			ctx.textAlign = "left";
+			ctx.textBaseline = "top";
+			const textX = qrX + qrSize + gap;
+			const textY = top;
+			const textWidth = Math.max(0, right - textX);
+			const textHeight = Math.max(0, bottom - top);
+			if (textWidth > 0 && textHeight > 0) {
+				drawText(ctx, text, {
+					x: textX,
+					y: textY,
+					width: textWidth,
+					height: textHeight,
+					font: "sans-serif",
+					fontSize,
+				});
+			}
+		}
+
+		ctx.rotate(-Math.PI / 2);
+		ctx.translate(-canvas.width / 2, -canvas.height / 2);
+	});
+	image.addEventListener("error", () => {
+		handleError("failed to load QR code");
+	});
+	image.src = qrImg;
+};
+
+const handleError = (err) => {
+	console.error(err);
+
+	const toast = bootstrap.Toast.getOrCreateInstance($("#errorToast"));
+	$("#errorText").textContent = err.toString();
+	toast.show();
+};
+
+// Helper function to set up initialization code
+const initializeApp = async function () {
+	console.log("=== initializeApp STARTED ===");
+	
+	// Immediate test to see if this function is being called
+	const testEl = document.querySelector("#connectionStatus");
+	console.log("testEl found:", !!testEl);
+	if (testEl) {
+		testEl.className = "alert alert-warning mb-3";
+		testEl.innerHTML = "<i class='bi bi-hourglass-split'></i> Initializing...";
+	}
+	
+	console.log("About to query canvas...");
+	const canvas = document.querySelector("#canvas");
+	console.log("Canvas found:", !!canvas);
+
+	console.log("Adding tab event listeners...");
+	document.addEventListener("shown.bs.tab", (e) => {
+		if (e.target.id === "nav-text-tab") updateCanvasText(canvas);
+		else if (e.target.id === "nav-barcode-tab") updateCanvasBarcode(canvas);
+		else if (e.target.id === "nav-image-tab") updateCanvasImage(canvas);
+		else if (e.target.id === "nav-qr-tab") updateCanvasQR(canvas);
+		else if (e.target.id === "nav-qr-text-tab") updateCanvasQRText(canvas);
+	});
+
+	console.log("Adding input listeners...");
+	$all("#inputWidth, #inputHeight").forEach((e) =>
+		e.addEventListener("input", () => updateLabelSize(canvas))
+	);
+	updateLabelSize(canvas);
+
+	$all("#inputText, #inputFontSize, #inputRepeatCount").forEach((e) =>
+		e.addEventListener("input", () => updateCanvasText(canvas))
+	);
+	updateCanvasText(canvas);
+
+	$("#btnClearText").addEventListener("click", () => {
+		$("#inputText").value = "";
+		updateCanvasText(canvas);
+	});
+
+	// Alignment button handling (visual feedback only)
+	if ($("#btnAlignLeft")) {
+		$("#btnAlignLeft").addEventListener("click", () => {
+			document.querySelectorAll("#btnAlignLeft, #btnAlignCenter, #btnAlignRight").forEach(btn => btn.classList.remove("active"));
+			$("#btnAlignLeft").classList.add("active");
+		});
+	}
+
+	if ($("#btnAlignCenter")) {
+		$("#btnAlignCenter").addEventListener("click", () => {
+			document.querySelectorAll("#btnAlignLeft, #btnAlignCenter, #btnAlignRight").forEach(btn => btn.classList.remove("active"));
+			$("#btnAlignCenter").classList.add("active");
+		});
+	}
+
+	if ($("#btnAlignRight")) {
+		$("#btnAlignRight").addEventListener("click", () => {
+			document.querySelectorAll("#btnAlignLeft, #btnAlignCenter, #btnAlignRight").forEach(btn => btn.classList.remove("active"));
+			$("#btnAlignRight").classList.add("active");
+		});
+	}
+
+	if ($("#btnBold")) {
+		$("#btnBold").addEventListener("click", () => {
+			isBoldMode = !isBoldMode;
+			$("#btnBold").classList.toggle("active");
+			updateCanvasText(canvas);
+		});
+	}
+
+	if ($("#btnItalic")) {
+		$("#btnItalic").addEventListener("click", () => {
+			isItalicMode = !isItalicMode;
+			$("#btnItalic").classList.toggle("active");
+			updateCanvasText(canvas);
+		});
+	}
+
+	if ($("#btnUppercase")) {
+		$("#btnUppercase").addEventListener("click", () => {
+			isUppercaseMode = !isUppercaseMode;
+			$("#btnUppercase").classList.toggle("active");
+			updateCanvasText(canvas);
+		});
+	}
+
+	$("#inputBarcode").addEventListener("input", () => updateCanvasBarcode(canvas));
+	$("#inputImage").addEventListener("change", () => updateCanvasImage(canvas));
+	$("#inputQR").addEventListener("input", () => updateCanvasQR(canvas));
+	$all("#inputQRTextData, #inputQRText, #inputQRTextSize").forEach((e) =>
+		e.addEventListener("input", () => updateCanvasQRText(canvas))
+	);
+
+	// Cache the paired device so subsequent prints reconnect silently without
+	// showing the device picker again.
+	let cachedDevice = null;
+	let cachedChar = null;
+	let isConnected = false; // Track connection state
+
+	const SERVICE_UUID = "0000ff00-0000-1000-8000-00805f9b34fb";
+	const CHAR_UUID = "0000ff02-0000-1000-8000-00805f9b34fb";
+	// Filter by first 3 octets of MAC address (OUI). Set to null to accept any D30.
+	const EXPECTED_MAC_PREFIX = "8922d8"; // Phomemo D30 printer
+
+	// Update connection status and button states
+	const updateConnectionUI = (connected, deviceName = null) => {
+		isConnected = connected;
+		const statusEl = $("#connectionStatus");
+		const statusText = $("#statusText");
+		const btnConnect = $("#btnConnect");
+		const btnDisconnect = $("#btnDisconnect");
+		const btnPrint = $("#btnPrint");
+		
+		// Only update elements that exist
+		if (statusEl && statusText) {
+			if (connected && deviceName) {
+				statusEl.className = "alert alert-success mb-3 d-flex align-items-center justify-content-between";
+				statusText.innerHTML = `<i class='bi bi-check-circle-fill'></i> Connected to <strong>${deviceName}</strong>`;
+			} else if (connected) {
+				statusEl.className = "alert alert-success mb-3 d-flex align-items-center justify-content-between";
+				statusText.innerHTML = "<i class='bi bi-check-circle-fill'></i> Connected to D30";
+			} else {
+				statusEl.className = "alert alert-info mb-3 d-flex align-items-center justify-content-between";
+				statusText.innerHTML = "<i class='bi bi-info-circle'></i> Click Connect to pair with your D30.";
+			}
+		}
+		
+		// Update buttons only if they exist
+		if (btnConnect) {
+			btnConnect.style.display = connected ? "none" : "block";
+		}
+		if (btnDisconnect) {
+			btnDisconnect.style.display = connected ? "block" : "none";
+		}
+		if (btnPrint) {
+			btnPrint.disabled = !connected;
+		}
+	};
+
+	const getCharacteristic = async () => {
+		// Check if Bluetooth API is available
+		if (!navigator.bluetooth) {
+			throw new Error(
+				"Web Bluetooth API not supported. Please use a compatible browser (Chrome, Edge) and ensure the page is served over HTTPS."
+			);
+		}
+
+		// Reuse existing connection if still live
+		if (cachedChar && cachedDevice?.gatt?.connected) {
+			return cachedChar;
+		}
+
+		// Device known but disconnected — try silent reconnect first
+		if (cachedDevice) {
+			try {
+				const server = await cachedDevice.gatt.connect();
+				const service = await server.getPrimaryService(SERVICE_UUID);
+				cachedChar = await service.getCharacteristic(CHAR_UUID);
+				return cachedChar;
+			} catch {
+				// Silent reconnect failed; fall through to show picker again
+				cachedDevice = null;
+				cachedChar = null;
+			}
+		}
+
+		// No device yet (or reconnect failed) — show the browser device picker
+		const device = await navigator.bluetooth.requestDevice({
+			filters: [
+				{
+					namePrefix: "D30",
+				},
+			],
+			optionalServices: [SERVICE_UUID],
+		});
+
+		// Validate MAC address if a prefix is expected
+		if (EXPECTED_MAC_PREFIX && device.address) {
+			const addressUpperCase = device.address.toUpperCase();
+			const prefixUpperCase = EXPECTED_MAC_PREFIX.toUpperCase();
+			if (!addressUpperCase.startsWith(prefixUpperCase)) {
+				throw new Error(
+					`Device address ${device.address} does not match expected prefix ${EXPECTED_MAC_PREFIX}`
+				);
+			}
+		}
+
+		// When the device disconnects, clear the characteristic so the next
+		// print attempt triggers a silent reconnect rather than failing silently.
+		device.addEventListener("gattserverdisconnected", () => {
+			cachedChar = null;
+		});
+
+		cachedDevice = device;
+		
+		// Connect with retry logic
+		let server;
+		let retries = 3;
+		while (retries > 0) {
+			try {
+				server = await device.gatt.connect();
+				const service = await server.getPrimaryService(SERVICE_UUID);
+				cachedChar = await service.getCharacteristic(CHAR_UUID);
+				return cachedChar;
+			} catch (err) {
+				retries--;
+				if (retries > 0) {
+					// Wait before retry
+					await new Promise((resolve) => setTimeout(resolve, 500));
+				} else {
+					throw err;
+				}
+			}
+		}
+	};
+
+	// Update connection status in the UI
+	const updateConnectionStatus = (message, type = "info") => {
+		const statusEl = $("#connectionStatus");
+		const statusText = $("#statusText");
+		
+		// Only update if elements exist
+		if (statusEl && statusText) {
+			statusEl.className = `alert alert-${type} mb-3 d-flex align-items-center justify-content-between`;
+			statusText.innerHTML = message;
+		}
+	};
+
+	// Check for previously paired D30 devices and attempt auto-connection on page load
+	const checkForPairedDevice = async () => {
+		try {
+			// Check if getDevices is supported (Chrome 104+, Edge 104+)
+			if (!navigator.bluetooth?.getDevices) {
+				console.log("getDevices not supported - browser doesn't support auto-detection");
+				updateConnectionUI(false);
+				return;
+			}
+
+			console.log("Checking for previously paired D30...");
+			const devices = await navigator.bluetooth.getDevices();
+			console.log(`Found ${devices.length} Bluetooth devices`);
+			
+			// Look for any D30 device (connected or previously paired)
+			const pairedD30 = devices.find((d) => d.name && d.name.includes("D30"));
+			
+			if (!pairedD30) {
+				console.log("No D30 devices found");
+				updateConnectionUI(false);
+				return;
+			}
+
+			console.log(`Found D30: ${pairedD30.name}, connected: ${pairedD30.gatt.connected}`);
+			
+			// If already connected, use it
+			if (pairedD30.gatt.connected) {
+				console.log("Device already connected, reusing connection");
+				cachedDevice = pairedD30;
+				
+				try {
+					const server = pairedD30.gatt.server;
+					const service = await server.getPrimaryService(SERVICE_UUID);
+					cachedChar = await service.getCharacteristic(CHAR_UUID);
+					updateConnectionUI(true, pairedD30.name);
+					return;
+				} catch (err) {
+					console.log("Failed to get characteristic from connected device:", err);
+				}
+			}
+
+			// Device exists but disconnected - try to reconnect
+			console.log("Device found but disconnected, attempting reconnect...");
+			updateConnectionStatus(
+				"<i class='bi bi-hourglass-split'></i> Reconnecting to paired D30...",
+				"warning"
+			);
+
+			cachedDevice = pairedD30;
+			try {
+				const server = await pairedD30.gatt.connect();
+				const service = await server.getPrimaryService(SERVICE_UUID);
+				cachedChar = await service.getCharacteristic(CHAR_UUID);
+				
+				// Set up disconnect listener
+				pairedD30.addEventListener("gattserverdisconnected", () => {
+					cachedChar = null;
+					updateConnectionUI(false);
+				});
+				
+				updateConnectionUI(true, pairedD30.name);
+			} catch (err) {
+				console.log("Failed to reconnect to D30:", err);
+				cachedDevice = null;
+				cachedChar = null;
+				updateConnectionUI(false);
+			}
+		} catch (err) {
+			console.log("checkForPairedDevice error:", err);
+			updateConnectionUI(false);
+		}
+	};
+
+	// Connect button handler
+	const btnConnect = $("#btnConnect");
+	console.log("btnConnect element:", btnConnect);
+	if (btnConnect) {
+		console.log("Attaching Connect click handler");
+		btnConnect.addEventListener("click", async () => {
+			try {
+				console.log("Connect button clicked!");
+				$("#btnConnect").disabled = true;
+				const statusText = $("#statusText");
+				statusText.innerHTML = "<i class='bi bi-hourglass-split'></i> Connecting...";
+				
+				const char = await getCharacteristic();
+				const deviceName = cachedDevice?.name || "D30";
+				updateConnectionUI(true, deviceName);
+			} catch (err) {
+				handleError(err);
+				updateConnectionUI(false);
+			}
+		});
+	} else {
+		console.warn("btnConnect not found!");
+	}
+
+	// Disconnect button handler
+	if ($("#btnDisconnect")) {
+		$("#btnDisconnect").addEventListener("click", () => {
+			try {
+				if (cachedDevice?.gatt?.connected) {
+					cachedDevice.gatt.disconnect();
+				}
+				cachedDevice = null;
+				cachedChar = null;
+				updateConnectionUI(false);
+			} catch (err) {
+				handleError(err);
+			}
+		});
+	}
+
+	// Print form submission
+	if ($("form")) {
+		$("form").addEventListener("submit", async (e) => {
+			e.preventDefault();
+			
+			if (!isConnected) {
+				handleError("Not connected. Click Connect first.");
+				return;
+			}
+			
+			try {
+				const copies = $("#inputCopies").valueAsNumber;
+				if (Number.isNaN(copies) || copies < 1) {
+					handleError("Number of copies must be at least 1");
+					return;
+				}
+
+				const char = await getCharacteristic();
+				for (let i = 0; i < copies; i++) {
+					await printCanvas(char, canvas);
+					if (i < copies - 1) {
+						// Add a small delay between prints for proper spacing
+						await new Promise((resolve) => setTimeout(resolve, 500));
+					}
+				}
+			} catch (err) {
+				handleError(err);
+			}
+		});
+	}
+
+	// Check for previously paired device on page load
+	try {
+		await checkForPairedDevice();
+	} catch (err) {
+		console.error("checkForPairedDevice error:", err);
+	}
+	
+	// Signal that module initialization is complete
+	if (typeof window.moduleInitialized === 'function') {
+		window.moduleInitialized();
+	}
+};

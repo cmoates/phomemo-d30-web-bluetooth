@@ -2,16 +2,132 @@
 	box-sizing: border-box;
 }
 
+body {
+	background-color: #f4f4f4;
+}
+
+h5 {
+	margin: 0 !important;
+}
+
+.label-size-input {
+	max-width: 80px;
+}
+
 #canvas {
-	transform: rotate(-90deg);
-	transform-origin: center;
-	margin: 20px 0;
+	display: block;
+	margin: 0 !important;
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	padding: 0 !important;
+	height: auto;
+	transform: none !important;
+	background-color: #e8e8e8;
+	position: relative;
+	top: 0;
+	left: 0;
 }
 
 .canvas-container {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	overflow: hidden;
-	width: fit-content;
+	display: inline-block !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	background-color: transparent;
+	line-height: 0;
+	font-size: 0;
 }
+
+/* Card styling for text options panel */
+.card {
+	border: none;
+	background-color: #fff;
+}
+
+.card-body {
+	padding: 1.5rem;
+}
+
+.card-title {
+	font-weight: 600;
+	color: #495057;
+	font-size: 0.95rem;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* Icon button styling */
+.btn-outline-secondary i {
+	font-size: 1.1rem;
+	vertical-align: middle;
+}
+
+/* Align buttons in a row */
+.btn-group-horizontal {
+	display: flex;
+	gap: 0.5rem;
+}
+
+/* Form label improvements */
+.form-label {
+	color: #495057;
+	font-size: 0.9rem;
+	margin-bottom: 0.5rem;
+}
+
+.form-label.fw-bold {
+	color: #212529;
+	font-weight: 600;
+}
+
+/* Input group text icons */
+.input-group-text i {
+	font-size: 1rem;
+}
+
+/* Tab content styling */
+.tab-content {
+	background-color: transparent;
+}
+
+/* Section headers */
+h5, h6 {
+	margin-bottom: 1rem;
+}
+
+h5 {
+	color: #212529;
+	font-weight: 600;
+}
+
+h6 {
+	font-size: 0.85rem;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* Textarea improvements */
+textarea.form-control {
+	font-family: "Roboto", sans-serif;
+	resize: vertical;
+	min-height: 8rem;
+}
+
+/* Center the preview section */
+.tab-pane > .card {
+	margin: 2rem auto;
+	max-width: 400px;
+}
+
+.card.shadow-sm {
+	margin: 2rem auto;
+	max-width: 400px;
+}
+
+/* Grid layout for buttons */
+.grid-cols-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
+
