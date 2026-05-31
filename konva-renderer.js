@@ -434,32 +434,11 @@ class UnifiedPrintPreview {
 			
 			window.QRCode.toCanvas(tempCanvas, data, { width: 200 }, (err) => {
 				if (!err) {
-					const qrSize = Math.min(qrArea.width, qrArea.height) * 0.98;
+					const qrSize = Math.min(qrArea.width, qrArea.height) * 0.95;
 					const qrImage = new Konva.Image({
 						image: tempCanvas,
 						x: qrArea.x + (qrArea.width - qrSize) / 2,
 						y: qrArea.y + (qrArea.height - qrSize) / 2,
-						width: qrSize,
-						height: qrSize
-					});
-					manager.contentLayer.add(qrImage);
-					manager.contentLayer.draw();
-				}
-			});
-		}
-		
-		// Render QR
-		if (inputQRTextData) {
-			const data = inputQRTextData.value || 'https://example.com';
-			const tempCanvas = document.createElement('canvas');
-			
-			window.QRCode.toCanvas(tempCanvas, data, { width: 200 }, (err) => {
-				if (!err) {
-					const qrSize = Math.min(qrArea.width, qrArea.height);
-					const qrImage = new Konva.Image({
-						image: tempCanvas,
-						x: qrArea.x,
-						y: qrArea.y,
 						width: qrSize,
 						height: qrSize
 					});
@@ -477,14 +456,14 @@ class UnifiedPrintPreview {
 			
 			// Use Konva's text with word wrapping on spaces and newlines
 			const textNode = new Konva.Text({
-				x: textArea.x + 8,
+				x: textArea.x,
 				y: textArea.y + 8,
 				text: text,
 				fontSize: fontSize,
 				fontFamily: 'Arial, sans-serif',
 				fill: '#000000',
 				align: 'left',
-				width: textArea.width - 16,
+				width: textArea.width,
 				wrap: 'word'
 			});
 			
