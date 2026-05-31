@@ -376,7 +376,7 @@ class UnifiedPrintPreview {
 			
 			if (layout === 'single') {
 			// Use as much height as possible while fitting within both dimensions
-			const qrSize = Math.min(printArea.width, printArea.height) * 0.9;
+			const qrSize = Math.min(printArea.width, printArea.height) * 0.98;
 			const qrImage = new Konva.Image({
 				image: tempCanvas,
 				x: printArea.x + (printArea.width - qrSize) / 2,
@@ -387,7 +387,7 @@ class UnifiedPrintPreview {
 				manager.contentLayer.add(qrImage);
 			} else {
 				// Three side by side
-				const qrSize = (printArea.width / 3) * 0.8;
+				const qrSize = (printArea.width / 3) * 0.95;
 				for (let i = 0; i < 3; i++) {
 					const qrImage = new Konva.Image({
 						image: tempCanvas,
@@ -434,7 +434,7 @@ class UnifiedPrintPreview {
 			
 			window.QRCode.toCanvas(tempCanvas, data, { width: 200 }, (err) => {
 				if (!err) {
-					const qrSize = Math.min(qrArea.width, qrArea.height) * 0.95;
+				const qrSize = Math.min(qrArea.width, qrArea.height) * 0.99;
 					const qrImage = new Konva.Image({
 						image: tempCanvas,
 						x: qrArea.x + (qrArea.width - qrSize) / 2,
