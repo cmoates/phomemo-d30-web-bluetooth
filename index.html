@@ -187,12 +187,17 @@
 			</nav>
 			<div id="connectionStatus" class="alert alert-info mb-3 d-flex align-items-center justify-content-between" role="status">
 				<div id="statusText">Initializing...</div>
-				<button type="button" class="btn btn-sm btn-outline-primary" id="btnConnect">
-					<i class="bi bi-bluetooth"></i> Connect
-				</button>
-				<button type="button" class="btn btn-sm btn-outline-danger" id="btnDisconnect" style="display: none;">
-					<i class="bi bi-bluetooth-off"></i> Disconnect
-				</button>
+				<div class="d-flex gap-2">
+					<button type="button" class="btn btn-sm btn-outline-primary" id="btnConnect">
+						<i class="bi bi-bluetooth"></i> Connect
+					</button>
+					<button type="button" class="btn btn-sm btn-outline-info" id="btnDemo" title="Test print functionality without Bluetooth hardware">
+						<i class="bi bi-play-fill"></i> Demo Mode
+					</button>
+					<button type="button" class="btn btn-sm btn-outline-danger" id="btnDisconnect" style="display: none;">
+						<i class="bi bi-bluetooth-off"></i> Disconnect
+					</button>
+				</div>
 			</div>
 			<form>
 				<div class="tab-content mb-4" id="nav-tabContent">
@@ -818,6 +823,51 @@
 								btnConnect.disabled = false;
 								bluetoothDevice = null;
 								bluetoothCharacteristic = null;
+							}
+						});
+					}
+					
+					// Set up Demo Mode button
+					const btnDemo = document.querySelector("#btnDemo");
+					if (btnDemo && !btnDemo.hasListener) {
+						btnDemo.hasListener = true;
+						btnDemo.addEventListener("click", () => {
+							// Simulate a successful Bluetooth connection for testing
+							console.log("Demo mode activated - simulating D30 connection");
+							
+							// Create mock device and characteristic
+							bluetoothDevice = { name: "D30 Demo", gatt: { connected: true, disconnect: () => {} } };
+							
+							// Mock characteristic that logs data instead of sending it
+							bluetoothCharacteristic = {
+								writeValueWithResponse: async (data) => {
+									console.log("Demo: Would send", data.length, "bytes to printer");
+									return Promise.resolve();
+								}
+							};
+							
+							statusEl.className = "alert alert-success mb-3 d-flex align-items-center justify-content-between";
+							statusText.innerHTML = "<i class='bi bi-check-circle-fill'></i> <strong>Demo Mode Active</strong> - Print function is enabled (data logs to console)";
+							
+							if (btnPrint) btnPrint.disabled = false;
+							if (btnDemo) btnDemo.style.display = "none";
+							if (btnConnect) btnConnect.style.display = "none";
+							if (btnDisconnect) {
+								btnDisconnect.style.display = "block";
+								// Override disconnect for demo
+								if (!btnDisconnect.hasListener) {
+									btnDisconnect.hasListener = true;
+									btnDisconnect.addEventListener("click", () => {
+										bluetoothDevice = null;
+										bluetoothCharacteristic = null;
+										statusEl.className = "alert alert-info mb-3 d-flex align-items-center justify-content-between";
+										statusText.innerHTML = "<i class='bi bi-info-circle'></i> Click Connect to pair with your D30.";
+										if (btnPrint) btnPrint.disabled = true;
+										if (btnConnect) btnConnect.style.display = "block";
+										if (btnDemo) btnDemo.style.display = "block";
+										if (btnDisconnect) btnDisconnect.style.display = "none";
+									});
+								}
 							}
 						});
 					}
