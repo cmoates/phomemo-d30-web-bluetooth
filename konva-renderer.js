@@ -204,7 +204,7 @@ class UnifiedPrintPreview {
 		
 		if (format === 'UPC') {
 			isValid = /^\d{12}$/.test(data);
-			jsbarFormat = 'UPC';
+			jsbarFormat = 'UPCA';
 		} else if (format === 'EAN') {
 			if (/^\d{13}$/.test(data)) {
 				jsbarFormat = 'EAN13';
