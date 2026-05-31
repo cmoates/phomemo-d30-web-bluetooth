@@ -906,6 +906,12 @@
 					return null;
 				}
 				
+				// Get constants and label size from printPreview
+				const HORIZONTAL_MARGIN_MM = window.printPreview?.HORIZONTAL_MARGIN_MM || 1;
+				const PIXELS_PER_MM = window.printPreview?.PIXELS_PER_MM || 8;
+				const DISPLAY_HEIGHT_MM = window.printPreview?.DISPLAY_HEIGHT_MM || 15;
+				const labelSize = window.printPreview?.labelSize || { width: 40, height: 12 };
+				
 				// Calculate margins in pixels
 				const marginLeftPx = HORIZONTAL_MARGIN_MM * PIXELS_PER_MM;
 				const marginTopPx = (DISPLAY_HEIGHT_MM - labelSize.height) * PIXELS_PER_MM / 2;
