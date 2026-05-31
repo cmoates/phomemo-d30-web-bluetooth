@@ -198,24 +198,24 @@ class UnifiedPrintPreview {
 		const data = (inputBarcode.value || '123456').trim();
 		const format = (inputBarcodeType.value || '').toUpperCase();
 		
-		// Validate format and convert to JsBarcode format names
-		let jsbarFormat = format;
+		// Validate format and convert to JsBarcode format names (lowercase)
+		let jsbarFormat = format.toLowerCase();
 		let isValid = true;
 		
 		if (format === 'UPC') {
 			isValid = /^\d{12}$/.test(data);
-			jsbarFormat = 'UPCA';
+			jsbarFormat = 'upc';
 		} else if (format === 'EAN') {
 			if (/^\d{13}$/.test(data)) {
-				jsbarFormat = 'EAN13';
+				jsbarFormat = 'ean13';
 			} else if (/^\d{8}$/.test(data)) {
-				jsbarFormat = 'EAN8';
+				jsbarFormat = 'ean8';
 			} else {
 				isValid = false;
 			}
 		} else if (format === 'CODE128') {
 			isValid = data.length > 0;
-			jsbarFormat = 'CODE128';
+			jsbarFormat = 'code128';
 		} else {
 			// Default or unknown format
 			isValid = data.length > 0;
