@@ -375,13 +375,14 @@ class UnifiedPrintPreview {
 			}
 			
 			if (layout === 'single') {
-				const qrSize = Math.min(printArea.width, printArea.height) * 0.8;
+				// Use as much space as possible, preferring height for tall labels
+				const maxSize = Math.max(printArea.width, printArea.height) * 0.9;
 				const qrImage = new Konva.Image({
 					image: tempCanvas,
-					x: printArea.x + (printArea.width - qrSize) / 2,
-					y: printArea.y + (printArea.height - qrSize) / 2,
-					width: qrSize,
-					height: qrSize
+					x: printArea.x + (printArea.width - maxSize) / 2,
+					y: printArea.y + (printArea.height - maxSize) / 2,
+					width: maxSize,
+					height: maxSize
 				});
 				manager.contentLayer.add(qrImage);
 			} else {
@@ -411,19 +412,19 @@ class UnifiedPrintPreview {
 		manager.contentLayer.destroyChildren();
 		const printArea = manager.getPrintableArea();
 		
-		// Render QR on top half, text on bottom half
+		// Render QR on left half, text on right half
 		const qrArea = {
 			x: printArea.x,
 			y: printArea.y,
-			width: printArea.width,
-			height: printArea.height * 0.6
+			width: printArea.width * 0.5,
+			height: printArea.height
 		};
 		
 		const textArea = {
-			x: printArea.x,
-			y: printArea.y + printArea.height * 0.6,
-			width: printArea.width,
-			height: printArea.height * 0.4
+			x: printArea.x + printArea.width * 0.5,
+			y: printArea.y,
+			width: printArea.width * 0.5,
+			height: printArea.height
 		};
 		
 		// Render QR
@@ -433,7 +434,7 @@ class UnifiedPrintPreview {
 			
 			window.QRCode.toCanvas(tempCanvas, data, { width: 200 }, (err) => {
 				if (!err) {
-					const qrSize = Math.min(qrArea.width, qrArea.height) * 0.8;
+					const qrSize = Math.min(qrArea.width, qrArea.height) * 0.9;
 					const qrImage = new Konva.Image({
 						image: tempCanvas,
 						x: qrArea.x + (qrArea.width - qrSize) / 2,
