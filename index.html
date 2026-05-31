@@ -1174,8 +1174,6 @@
 					// Sync text input with slider
 					if (inputFontSize) {
 						inputFontSize.value = inputFontSizeSlider.value;
-						// Dispatch event so Konva listeners pick it up
-						inputFontSize.dispatchEvent(new Event('input', { bubbles: true }));
 					}
 				});
 				
@@ -1637,8 +1635,6 @@
 					// Sync text input with slider
 					if (inputQRTextSize) {
 						inputQRTextSize.value = inputQRTextSizeSlider.value;
-						// Dispatch event so Konva listeners pick it up
-						inputQRTextSize.dispatchEvent(new Event('input', { bubbles: true }));
 					}
 				});
 				
