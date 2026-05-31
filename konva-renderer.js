@@ -478,8 +478,10 @@ class UnifiedPrintPreview {
 			
 			// Create temporary canvas for text measurement
 			const tempCanvas = document.createElement('canvas');
+			tempCanvas.width = 1000;
+			tempCanvas.height = 100;
 			const context = tempCanvas.getContext('2d');
-			context.font = `${fontSize}px Arial`;
+			context.font = `${Math.ceil(fontSize)}px Arial`;
 			
 			// Split text into lines on newlines first
 			const lines = rawText.split('\n');
@@ -510,7 +512,7 @@ class UnifiedPrintPreview {
 			// Render wrapped text lines
 			const lineHeight = fontSize * 1.2;
 			const totalHeight = lineHeight * wrappedLines.length;
-			let startY = textArea.y + (textArea.height - totalHeight) / 2;
+			let startY = textArea.y + Math.max(0, (textArea.height - totalHeight) / 2);
 			
 			wrappedLines.forEach((line, index) => {
 				const textNode = new Konva.Text({
