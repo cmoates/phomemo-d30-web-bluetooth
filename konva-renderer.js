@@ -162,19 +162,7 @@ class UnifiedPrintPreview {
 		const fontSizeMm = parseFloat(inputFontSize.value) || 6;
 		const fontSize = fontSizeMm * this.PIXELS_PER_MM;
 		
-		// Measure visible text height WITHOUT descenders
-		// Use a single capital letter which has no descenders and won't wrap
-		const tempTextNoDescenders = new Konva.Text({
-			text: 'X',  // Single capital letter - no descenders
-			fontSize: fontSize,
-			fontFamily: 'Arial, sans-serif',
-			align: 'center'
-		});
-		
-		// This height represents the cap-height (true visual height without descenders)
-		const visibleTextHeight = tempTextNoDescenders.getHeight();
-		
-		// Create actual text node for layout calculation
+		// Create actual text node to measure its height and check if multi-line
 		const tempText = new Konva.Text({
 			text: text,
 			fontSize: fontSize,
@@ -184,8 +172,34 @@ class UnifiedPrintPreview {
 			wrap: 'word'
 		});
 		
-		// Center using visible height (cap-height without descenders), not full text height
-		const startY = printArea.y + Math.max(0, (printArea.height - visibleTextHeight) / 2);
+		// Check if text spans multiple lines
+		// Lines = explicit newlines + wrapped lines
+		const lineCount = text.split('\n').length;
+		const actualTextHeight = tempText.getHeight();
+		
+		// Measure single line height (cap-height, no descenders)
+		const tempSingleLine = new Konva.Text({
+			text: 'X',
+			fontSize: fontSize,
+			fontFamily: 'Arial, sans-serif',
+			align: 'center'
+		});
+		const singleLineHeight = tempSingleLine.getHeight();
+		
+		// Determine which height to use for centering
+		// Single line: center on x-height (cap-height)
+		// Multi-line: center on full text block height
+		let centeringHeight;
+		if (lineCount > 1) {
+			// Multi-line: use full text height
+			centeringHeight = actualTextHeight;
+		} else {
+			// Single line: use x-height (cap-height without descenders)
+			centeringHeight = singleLineHeight;
+		}
+		
+		// Calculate vertical position for centering
+		const startY = printArea.y + Math.max(0, (printArea.height - centeringHeight) / 2);
 		
 		const textNode = new Konva.Text({
 			x: printArea.x,
