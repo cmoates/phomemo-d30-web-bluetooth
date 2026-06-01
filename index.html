@@ -971,12 +971,56 @@
 					const manager = window.printPreview.managers[canvasId];
 					if (manager && manager.stage) {
 						try {
-							// Get the internal buffer canvas from Konva Stage where rendered content is drawn
-							const bufferCanvas = manager.stage.bufferCanvas;
-							// Access the actual HTMLCanvas element wrapped inside Konva's Canvas object
-							displayCanvas = bufferCanvas._canvas || bufferCanvas;
+							// Force complete redraw with cache enabled
+							manager.stage.batchDraw();
+							
+							// Use Konva's toCanvas() to get a properly rendered output
+							const stageCanvas = manager.stage.toCanvas();
+							if (stageCanvas) {
+								displayCanvas = stageCanvas;
+								console.log("Extracted stage canvas via toCanvas():", displayCanvas.width, "x", displayCanvas.height);
+							}
 						} catch(e) {
-							console.warn("Failed to get Konva bufferCanvas:", e);
+							console.warn("Failed to use toCanvas():", e);
+							
+							// Fallback: try composite of layers
+							try {
+								manager.stage.draw();
+								
+								const stageWidth = manager.stage.width();
+								const stageHeight = manager.stage.height();
+								
+								const compositeCanvas = document.createElement('canvas');
+								compositeCanvas.width = stageWidth;
+								compositeCanvas.height = stageHeight;
+								const compositeCtx = compositeCanvas.getContext('2d');
+								
+								// Draw each layer
+								const layers = manager.stage.getLayers();
+								layers.forEach(layer => {
+									const layerCanvas = layer.canvas;
+									if (layerCanvas && layerCanvas._canvas) {
+										compositeCtx.drawImage(layerCanvas._canvas, 0, 0);
+									}
+								});
+								
+								displayCanvas = compositeCanvas;
+								console.log("Fallback 1: Composite canvas", displayCanvas.width, "x", displayCanvas.height);
+							} catch(e2) {
+								console.warn("Fallback 1 failed:", e2);
+								
+								// Fallback 2: use visible rendered canvas
+								try {
+									const konvaContainer = manager.stage.container();
+									const renderedCanvases = konvaContainer.querySelectorAll('canvas');
+									if (renderedCanvases.length > 0) {
+										displayCanvas = renderedCanvases[0];
+										console.log("Fallback 2: First rendered canvas");
+									}
+								} catch(e3) {
+									console.warn("Fallback 2 failed:", e3);
+								}
+							}
 						}
 					}
 				}
@@ -990,6 +1034,8 @@
 					console.error("Could not find canvas for printing");
 					return null;
 				}
+				
+				console.log("Using canvas dimensions:", displayCanvas.width, "x", displayCanvas.height);
 				
 				// Get constants and label size from printPreview
 				const HORIZONTAL_MARGIN_MM = window.printPreview?.HORIZONTAL_MARGIN_MM || 1;

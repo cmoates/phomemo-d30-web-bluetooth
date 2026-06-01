@@ -188,7 +188,7 @@ class UnifiedPrintPreview {
 		});
 		
 		manager.contentLayer.add(textNode);
-		manager.contentLayer.draw();
+		manager.stage.draw();
 	}
 	
 	renderBarcode(manager) {
@@ -237,7 +237,7 @@ class UnifiedPrintPreview {
 				width: printArea.width
 			});
 			manager.contentLayer.add(errorMsg);
-			manager.contentLayer.draw();
+			manager.stage.draw();
 			return;
 		}
 		
@@ -277,7 +277,7 @@ class UnifiedPrintPreview {
 			});
 			
 			manager.contentLayer.add(konvaImage);
-			manager.contentLayer.draw();
+			manager.stage.draw();
 		} catch (err) {
 			console.error('Barcode error:', err);
 			const errorText = err?.message || (typeof err === 'string' ? err : 'Failed to generate barcode');
@@ -291,7 +291,7 @@ class UnifiedPrintPreview {
 				width: printArea.width
 			});
 			manager.contentLayer.add(errorMsg);
-			manager.contentLayer.draw();
+			manager.stage.draw();
 		}
 	}
 	
@@ -312,7 +312,7 @@ class UnifiedPrintPreview {
 				width: printArea.width
 			});
 			manager.contentLayer.add(placeholder);
-			manager.contentLayer.draw();
+			manager.stage.draw();
 			return;
 		}
 		
@@ -342,7 +342,7 @@ class UnifiedPrintPreview {
 				});
 				
 				manager.contentLayer.add(konvaImage);
-				manager.contentLayer.draw();
+				manager.stage.draw();
 			};
 			img.src = e.target.result;
 		};
@@ -375,7 +375,7 @@ class UnifiedPrintPreview {
 					width: printArea.width
 				});
 				manager.contentLayer.add(errorMsg);
-				manager.contentLayer.draw();
+				manager.stage.draw();
 				return;
 			}
 			
@@ -396,7 +396,7 @@ class UnifiedPrintPreview {
 				manager.contentLayer.add(qrImage);
 			}
 			
-			manager.contentLayer.draw();
+			manager.stage.draw();
 		});
 	}
 	
@@ -439,7 +439,7 @@ class UnifiedPrintPreview {
 						height: qrSize
 					});
 					manager.contentLayer.add(qrImage);
-					manager.contentLayer.draw();
+					manager.stage.draw();
 				}
 			});
 		}
@@ -464,7 +464,7 @@ class UnifiedPrintPreview {
 			});
 			
 			manager.contentLayer.add(textNode);
-			manager.contentLayer.draw();
+			manager.stage.draw();
 		}
 	}
 }
