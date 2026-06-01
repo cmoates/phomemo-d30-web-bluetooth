@@ -942,7 +942,13 @@
 		<script>
 			// Placeholder for compatibility - actual rendering handled by konva-renderer.js
 			function updateCanvasText() {
-				// Handled by konva-renderer.js
+				// Trigger re-render with current alignment
+				if (window.printPreview && window.printPreview.renderText) {
+					const manager = window.printPreview.managers.canvas;
+					if (manager) {
+						window.printPreview.renderText(manager);
+					}
+				}
 			}
 			
 			// Function to create a rotated canvas for printing (without margins)

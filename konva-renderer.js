@@ -149,6 +149,17 @@ class UnifiedPrintPreview {
 	}
 	
 	// Render functions for each tab type
+	getTextAlignment() {
+		// Determine text alignment from button states
+		const btnAlignLeft = document.getElementById('btnAlignLeft');
+		const btnAlignCenter = document.getElementById('btnAlignCenter');
+		const btnAlignRight = document.getElementById('btnAlignRight');
+		
+		if (btnAlignLeft?.classList.contains('active')) return 'left';
+		if (btnAlignRight?.classList.contains('active')) return 'right';
+		return 'center'; // default
+	}
+
 	renderText(manager) {
 		const inputText = document.getElementById('inputText');
 		const inputFontSize = document.getElementById('inputFontSize');
@@ -162,12 +173,15 @@ class UnifiedPrintPreview {
 		const fontSizeMm = parseFloat(inputFontSize.value) || 6;
 		const fontSize = fontSizeMm * this.PIXELS_PER_MM;
 		
+		// Get current text alignment from button state
+		const textAlignment = this.getTextAlignment();
+		
 		// Create actual text node to measure its height and check if multi-line
 		const tempText = new Konva.Text({
 			text: text,
 			fontSize: fontSize,
 			fontFamily: 'Arial, sans-serif',
-			align: 'center',
+			align: textAlignment,
 			width: printArea.width,
 			wrap: 'word'
 		});
@@ -182,7 +196,7 @@ class UnifiedPrintPreview {
 			text: 'X',
 			fontSize: fontSize,
 			fontFamily: 'Arial, sans-serif',
-			align: 'center'
+			align: textAlignment
 		});
 		const singleLineHeight = tempSingleLine.getHeight();
 		
@@ -208,7 +222,7 @@ class UnifiedPrintPreview {
 			fontSize: fontSize,
 			fontFamily: 'Arial, sans-serif',
 			fill: '#000000',
-			align: 'center',
+			align: textAlignment,
 			width: printArea.width,
 			wrap: 'word'
 		});
