@@ -160,6 +160,26 @@ class UnifiedPrintPreview {
 		return 'center'; // default
 	}
 
+	getTextStyle() {
+		// Determine text style (bold, italic) from button states
+		const btnBold = document.getElementById('btnBold');
+		const btnItalic = document.getElementById('btnItalic');
+		
+		const isBold = btnBold?.classList.contains('active');
+		const isItalic = btnItalic?.classList.contains('active');
+		
+		let fontStyle = 'normal';
+		if (isBold && isItalic) {
+			fontStyle = 'bold italic';
+		} else if (isBold) {
+			fontStyle = 'bold';
+		} else if (isItalic) {
+			fontStyle = 'italic';
+		}
+		
+		return fontStyle;
+	}
+
 	renderText(manager) {
 		const inputText = document.getElementById('inputText');
 		const inputFontSize = document.getElementById('inputFontSize');
@@ -173,8 +193,9 @@ class UnifiedPrintPreview {
 		const fontSizeMm = parseFloat(inputFontSize.value) || 6;
 		const fontSize = fontSizeMm * this.PIXELS_PER_MM;
 		
-		// Get current text alignment from button state
+		// Get current text alignment and style from button states
 		const textAlignment = this.getTextAlignment();
+		const fontStyle = this.getTextStyle();
 		
 		// Create actual text node to measure its height and check if multi-line
 		const tempText = new Konva.Text({
@@ -182,6 +203,7 @@ class UnifiedPrintPreview {
 			fontSize: fontSize,
 			fontFamily: 'Arial, sans-serif',
 			align: textAlignment,
+			fontStyle: fontStyle,
 			width: printArea.width,
 			wrap: 'word'
 		});
@@ -196,7 +218,8 @@ class UnifiedPrintPreview {
 			text: 'X',
 			fontSize: fontSize,
 			fontFamily: 'Arial, sans-serif',
-			align: textAlignment
+			align: textAlignment,
+			fontStyle: fontStyle
 		});
 		const singleLineHeight = tempSingleLine.getHeight();
 		
@@ -223,6 +246,7 @@ class UnifiedPrintPreview {
 			fontFamily: 'Arial, sans-serif',
 			fill: '#000000',
 			align: textAlignment,
+			fontStyle: fontStyle,
 			width: printArea.width,
 			wrap: 'word'
 		});

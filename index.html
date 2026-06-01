@@ -235,14 +235,6 @@
 								>
 									ABC
 								</button>
-								<button
-									type="button"
-									class="btn btn-sm btn-outline-secondary"
-									id="btnClearText"
-									title="Clear"
-								>
-									<i class="bi bi-trash"></i>
-								</button>
 								<div class="vr"></div>
 								<button
 									type="button"
@@ -1137,7 +1129,6 @@
 				const btnBold = document.querySelector("#btnBold");
 				const btnItalic = document.querySelector("#btnItalic");
 				const btnUppercase = document.querySelector("#btnUppercase");
-				const btnClearText = document.querySelector("#btnClearText");
 				const btnAlignLeft = document.querySelector("#btnAlignLeft");
 				const btnAlignCenter = document.querySelector("#btnAlignCenter");
 				const btnAlignRight = document.querySelector("#btnAlignRight");
@@ -1160,13 +1151,6 @@
 						} else {
 							inputText.value = inputText.value.toLowerCase();
 						}
-						updateCanvasText();
-					}
-				});
-				
-				if (btnClearText) btnClearText.addEventListener("click", () => {
-					if (inputText) {
-						inputText.value = "";
 						updateCanvasText();
 					}
 				});
