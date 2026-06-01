@@ -162,7 +162,19 @@ class UnifiedPrintPreview {
 		const fontSizeMm = parseFloat(inputFontSize.value) || 6;
 		const fontSize = fontSizeMm * this.PIXELS_PER_MM;
 		
-		// Create a temporary text node to measure its height
+		// Measure visible text height WITHOUT descenders
+		// Use a single capital letter which has no descenders and won't wrap
+		const tempTextNoDescenders = new Konva.Text({
+			text: 'X',  // Single capital letter - no descenders
+			fontSize: fontSize,
+			fontFamily: 'Arial, sans-serif',
+			align: 'center'
+		});
+		
+		// This height represents the cap-height (true visual height without descenders)
+		const visibleTextHeight = tempTextNoDescenders.getHeight();
+		
+		// Create actual text node for layout calculation
 		const tempText = new Konva.Text({
 			text: text,
 			fontSize: fontSize,
@@ -172,8 +184,8 @@ class UnifiedPrintPreview {
 			wrap: 'word'
 		});
 		
-		const textHeight = tempText.getHeight();
-		const startY = printArea.y + Math.max(0, (printArea.height - textHeight) / 2);
+		// Center using visible height (cap-height without descenders), not full text height
+		const startY = printArea.y + Math.max(0, (printArea.height - visibleTextHeight) / 2);
 		
 		const textNode = new Konva.Text({
 			x: printArea.x,
