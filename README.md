@@ -1,4 +1,8 @@
-# Phomemo D30 Web Bluetooth
+# Phomemo D30 Web Printing Tool}
+
+Original code base from odensc: https://github.com/odensc/phomemo-d30-web-bluetooth
+
+This started out as a "let's add a feature" and turned into a massive rewrite. Since odensc previously stated that he wasn't really interested in this as a long term expanded project, I'm just forking it here. I've also incorporated some various other improvements that others have done. All credit is of course in the commits.
 
 Proof of concept and demo of printing to a [Phomemo D30](https://www.amazon.com/dp/B08HV3MPFD) Bluetooth label maker via the browser using Web Bluetooth.
 
@@ -8,15 +12,16 @@ Proof of concept and demo of printing to a [Phomemo D30](https://www.amazon.com/
 - ✅ Unified Konva-based rendering for all canvases
 - ✅ Bluetooth connectivity via Web Bluetooth API
 - ✅ Adjustable label sizes with presets
-- ✅ Demo Mode for testing without hardware
+- ✅ Demo Mode for testing without hardware (add ?debug to URL)
 - ✅ Real-time preview with font size and alignment controls
 - ✅ Support for CODE128, UPC, EAN13, EAN8 barcodes
-- ✅ QR code layout with 1-3 code support
+- ✅ QR code layout with 1-3 codes per label to save on labels
 
 ## Quick Start
 
 1. **For Testing Without Hardware:**
    - Open the application in a Web Bluetooth-compatible browser
+   - Make sure the URL has ?debug in it, to enable the display of the button
    - Click the **"Demo Mode"** button
    - The Print button will become enabled
    - Select text/barcode/image and click Print
@@ -48,7 +53,6 @@ Proof of concept and demo of printing to a [Phomemo D30](https://www.amazon.com/
 ### QR Code Mode
 - Enter QR code data
 - Adjust quantity slider (1-3 codes)
-- All codes use uniform sizing
 
 ### QR Code + Text Mode
 - Combine QR code with text on same label
@@ -66,7 +70,7 @@ Proof of concept and demo of printing to a [Phomemo D30](https://www.amazon.com/
 - Make sure D30 printer is powered on
 - Enter pairing/pairing mode on printer (usually button press)
 - Try "Demo Mode" to test without hardware
-- Check that browser supports Web Bluetooth (Chrome, Edge, Opera)
+- Check that browser supports Web Bluetooth (Chrome, Edge, Opera, others?)
 
 ### "No D30 devices found"
 **Cause:** Bluetooth picker showed but no devices matched "D30" prefix
@@ -169,7 +173,7 @@ Print complete!
 
 ## Demo
 
-[A demo is available here.](https://odensc.github.io/phomemo-d30-web-bluetooth/) Please use a Web Bluetooth-compatible browser (e.g. Chromium-based).
+[A demo is available here.](https://cmoates.github.io/phomemo-d30-web-bluetooth/) Please use a Web Bluetooth-compatible browser (e.g. Chromium-based).
 
 ## Credits
 
