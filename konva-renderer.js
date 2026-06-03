@@ -180,6 +180,12 @@ class UnifiedPrintPreview {
 		return fontStyle;
 	}
 
+	isUppercaseActive() {
+		// Check if uppercase button is active
+		const btnUppercase = document.getElementById('btnUppercase');
+		return btnUppercase?.classList.contains('active');
+	}
+
 	renderText(manager) {
 		const inputText = document.getElementById('inputText');
 		const inputFontSize = document.getElementById('inputFontSize');
@@ -189,9 +195,14 @@ class UnifiedPrintPreview {
 		
 		if (!inputText || !inputFontSize) return;
 		
-		const text = inputText.value || 'Hello, world!';
+		let text = inputText.value || 'Hello, world!';
 		const fontSizeMm = parseFloat(inputFontSize.value) || 6;
 		const fontSize = fontSizeMm * this.PIXELS_PER_MM;
+		
+		// Apply uppercase transform if button is active (display only, doesn't modify textarea)
+		if (this.isUppercaseActive()) {
+			text = text.toUpperCase();
+		}
 		
 		// Get current text alignment and style from button states
 		const textAlignment = this.getTextAlignment();
@@ -226,8 +237,10 @@ class UnifiedPrintPreview {
 		// Determine which height to use for centering
 		// Single line: center on x-height (cap-height)
 		// Multi-line: center on full text block height
+		// Check both explicit newlines AND actual wrapping (text may wrap differently in uppercase vs lowercase)
 		let centeringHeight;
-		if (lineCount > 1) {
+		const isWrapped = actualTextHeight > singleLineHeight * 1.1; // Allow 10% tolerance for font rendering variance
+		if (lineCount > 1 || isWrapped) {
 			// Multi-line: use full text height
 			centeringHeight = actualTextHeight;
 		} else {
@@ -236,7 +249,16 @@ class UnifiedPrintPreview {
 		}
 		
 		// Calculate vertical position for centering
-		const startY = printArea.y + Math.max(0, (printArea.height - centeringHeight) / 2);
+		let startY = printArea.y + Math.max(0, (printArea.height - centeringHeight) / 2);
+		
+		// Adjust downward to account for visual balance
+		// Single line: +1px (descenders extend below baseline)
+		// Multi-line: +2px (better visual balance for wrapped text)
+		if (lineCount > 1 || isWrapped) {
+			startY += 2;
+		} else {
+			startY += 1;
+		}
 		
 		const textNode = new Konva.Text({
 			x: printArea.x,
@@ -472,18 +494,22 @@ class UnifiedPrintPreview {
 		manager.contentLayer.destroyChildren();
 		const printArea = manager.getPrintableArea();
 		
-		// Render QR on left half, text on right half
+		// Render QR on left side (just enough for the square QR), text takes remaining space
+		// QR code needs square area equal to height, so calculate based on that
+		const qrSize = printArea.height * 0.98;
+		const qrAreaWidth = qrSize + 4; // QR + small margin
+		
 		const qrArea = {
 			x: printArea.x,
 			y: printArea.y,
-			width: printArea.width * 0.5,
+			width: qrAreaWidth,
 			height: printArea.height
 		};
 		
 		const textArea = {
-			x: printArea.x + printArea.width * 0.5,
+			x: printArea.x + qrAreaWidth,
 			y: printArea.y,
-			width: printArea.width * 0.5,
+			width: printArea.width - qrAreaWidth,
 			height: printArea.height
 		};
 		
@@ -494,7 +520,6 @@ class UnifiedPrintPreview {
 			
 			window.QRCode.toCanvas(tempCanvas, data, { width: 200 }, (err) => {
 				if (!err) {
-					const qrSize = qrArea.height * 0.98;
 					const qrImage = new Konva.Image({
 						image: tempCanvas,
 						x: qrArea.x,
@@ -515,15 +540,17 @@ class UnifiedPrintPreview {
 			const fontSize = fontSizeMm * this.PIXELS_PER_MM;
 			
 			// Use Konva's text with word wrapping on spaces and newlines
+			// Add small left padding for spacing from QR code
+			const textPadding = 4;
 			const textNode = new Konva.Text({
-				x: textArea.x,
+				x: textArea.x + textPadding,
 				y: textArea.y + 8,
 				text: text,
 				fontSize: fontSize,
 				fontFamily: 'Arial, sans-serif',
 				fill: '#000000',
 				align: 'left',
-				width: textArea.width,
+				width: textArea.width - textPadding,
 				wrap: 'word'
 			});
 			
