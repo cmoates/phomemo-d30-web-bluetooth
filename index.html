@@ -7,7 +7,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 		<link rel="manifest" href="manifest.json" />
-		<meta name="theme-color" content="#0d6efd" />
+		<meta name="theme-color" content="#4f46e5" />
 		<link rel="apple-touch-icon" href="icon.svg" />
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -191,7 +191,7 @@
 					<button type="button" class="btn btn-sm btn-outline-primary" id="btnConnect">
 						<i class="bi bi-bluetooth"></i> Connect
 					</button>
-					<button type="button" class="btn btn-sm btn-outline-info" id="btnDemo" title="Test print functionality without Bluetooth hardware">
+					<button type="button" class="btn btn-sm btn-outline-info" id="btnDemo" title="Test print functionality without Bluetooth hardware" style="display: none;">
 						<i class="bi bi-play-fill"></i> Demo Mode
 					</button>
 					<button type="button" class="btn btn-sm btn-outline-danger" id="btnDisconnect" style="display: none;">
@@ -298,26 +298,7 @@
 								<div class="canvas-container" style="margin: 0 !important; margin-bottom: 1rem !important; padding: 0 !important; line-height: 0; font-size: 0; overflow: hidden; width: fit-content;">
 									<canvas id="canvas"></canvas>
 								</div>
-								<div class="d-flex justify-content-start align-items-end gap-3">
-									<div>
-										<label for="inputCopies" class="form-label">Number of copies</label>
-										<div class="input-group">
-											<span class="input-group-text"><i class="bi bi-printer"></i></span>
-											<input
-												type="number"
-												step="1"
-												min="1"
-												value="1"
-												class="form-control form-control-sm"
-												id="inputCopies"
-												style="max-width: 80px;"
-											/>
-										</div>
-									</div>
-									<button type="button" class="btn btn-primary btn-lg" id="btnPrint" disabled>
-										<i class="bi bi-printer"></i> Print
-									</button>
-								</div>
+							</div>
 							</div>
 						</div>
 					</div>
@@ -347,26 +328,6 @@
 								<div class="canvas-container" style="margin: 0 !important; margin-bottom: 1rem !important; padding: 0 !important; line-height: 0; font-size: 0; overflow: hidden; width: fit-content;">
 									<canvas id="canvasBarcode"></canvas>
 								</div>
-								<div class="d-flex justify-content-start align-items-end gap-3">
-									<div>
-										<label for="inputCopiesBarcode" class="form-label">Number of copies</label>
-										<div class="input-group">
-											<span class="input-group-text"><i class="bi bi-printer"></i></span>
-											<input
-												type="number"
-												step="1"
-												min="1"
-												value="1"
-												class="form-control form-control-sm"
-												id="inputCopiesBarcode"
-												style="max-width: 80px;"
-											/>
-										</div>
-									</div>
-									<button type="button" class="btn btn-primary btn-lg" id="btnPrintBarcode" disabled>
-										<i class="bi bi-printer"></i> Print
-									</button>
-								</div>
 							</div>
 						</div>
 					</div>
@@ -380,32 +341,12 @@
 						<div class="row g-3">
 							<div class="col-lg-6">
 								<h6 class="text-muted mb-3">Image file</h6>
-								<input type="file" class="form-control mb-3" id="inputImage" />
+								<input type="file" class="form-control mb-3" id="inputImage" accept="image/*" />
 							</div>
 							<div class="col-lg-6">
 								<h6 class="text-muted mb-3"><i class="bi bi-eye"></i> Preview</h6>
 								<div class="canvas-container" style="margin: 0 !important; margin-bottom: 1rem !important; padding: 0 !important; line-height: 0; font-size: 0; overflow: hidden; width: fit-content;">
 									<canvas id="canvasImage"></canvas>
-								</div>
-								<div class="d-flex justify-content-start align-items-end gap-3">
-									<div>
-										<label for="inputCopiesImage" class="form-label">Number of copies</label>
-										<div class="input-group">
-											<span class="input-group-text"><i class="bi bi-printer"></i></span>
-											<input
-												type="number"
-												step="1"
-												min="1"
-												value="1"
-												class="form-control form-control-sm"
-												id="inputCopiesImage"
-												style="max-width: 80px;"
-											/>
-										</div>
-									</div>
-									<button type="button" class="btn btn-primary btn-lg" id="btnPrintImage" disabled>
-										<i class="bi bi-printer"></i> Print
-									</button>
 								</div>
 							</div>
 						</div>
@@ -434,26 +375,6 @@
 							<h6 class="text-muted mb-3"><i class="bi bi-eye"></i> Preview</h6>
 							<div class="canvas-container" style="margin: 0 !important; margin-bottom: 1rem !important; padding: 0 !important; line-height: 0; font-size: 0; overflow: hidden; width: fit-content;">
 								<canvas id="canvasQR"></canvas>
-							</div>
-							<div class="d-flex justify-content-start align-items-end gap-3">
-								<div>
-									<label for="inputCopiesQR" class="form-label">Number of copies</label>
-									<div class="input-group">
-										<span class="input-group-text"><i class="bi bi-printer"></i></span>
-										<input
-											type="number"
-											step="1"
-											min="1"
-											value="1"
-											class="form-control form-control-sm"
-											id="inputCopiesQR"
-											style="max-width: 80px;"
-										/>
-									</div>
-								</div>
-								<button type="button" class="btn btn-primary btn-lg" id="btnPrintQR" disabled>
-									<i class="bi bi-printer"></i> Print
-								</button>
 							</div>
 							</div>
 						</div>
@@ -503,26 +424,35 @@
 								<div class="canvas-container" style="margin: 0 !important; margin-bottom: 1rem !important; padding: 0 !important; line-height: 0; font-size: 0; overflow: hidden; width: fit-content;">
 									<canvas id="canvasQRText"></canvas>
 								</div>
-								<div class="d-flex justify-content-start align-items-end gap-3">
-									<div>
-										<label for="inputCopiesQRText" class="form-label">Number of copies</label>
-										<div class="input-group">
-											<span class="input-group-text"><i class="bi bi-printer"></i></span>
-											<input
-												type="number"
-												step="1"
-												min="1"
-												value="1"
-												class="form-control form-control-sm"
-												id="inputCopiesQRText"
-												style="max-width: 80px;"
-											/>
-										</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Unified Print Control -->
+				<div class="mb-4">
+					<div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+						<div>
+							<h6 class="text-muted mb-3">Print Settings</h6>
+							<div class="d-flex gap-3 align-items-end">
+								<div>
+									<label for="inputCopies" class="form-label">Number of copies</label>
+									<div class="input-group">
+										<span class="input-group-text"><i class="bi bi-printer"></i></span>
+										<input
+											type="number"
+											step="1"
+											min="1"
+											value="1"
+											class="form-control form-control-sm"
+											id="inputCopies"
+											style="max-width: 80px;"
+										/>
 									</div>
-									<button type="button" class="btn btn-primary btn-lg" id="btnPrintQRText" disabled>
-										<i class="bi bi-printer"></i> Print
-									</button>
 								</div>
+								<button type="button" class="btn btn-primary btn-lg" id="btnPrint" disabled>
+									<i class="bi bi-printer"></i> Print
+								</button>
 							</div>
 						</div>
 					</div>
@@ -625,6 +555,13 @@
 		<!-- Module script disabled - using fallback HTML initialization instead -->
 		<!-- <script type="module" src="index.js" defer></script> -->
 		<script>
+			// Check if debug mode is enabled via ?debug parameter
+			const debugMode = new URLSearchParams(window.location.search).has('debug');
+			if (debugMode) {
+				const btnDemo = document.getElementById('btnDemo');
+				if (btnDemo) btnDemo.style.display = 'block';
+			}
+			
 			// Global variables for Bluetooth connection and printing
 			let bluetoothDevice = null;
 			let bluetoothCharacteristic = null;
@@ -777,6 +714,7 @@
 								statusEl.className = "alert alert-success mb-3 d-flex align-items-center justify-content-between";
 								statusText.innerHTML = `<i class='bi bi-check-circle-fill'></i> Connected to <strong>${device.name}</strong>`;
 								
+								// Enable print button
 								if (btnPrint) btnPrint.disabled = false;
 								if (btnDisconnect) btnDisconnect.style.display = "block";
 								if (btnConnect) btnConnect.style.display = "none";
@@ -841,6 +779,7 @@
 							statusEl.className = "alert alert-success mb-3 d-flex align-items-center justify-content-between";
 							statusText.innerHTML = "<i class='bi bi-check-circle-fill'></i> <strong>Demo Mode Active</strong> - Print function is enabled (data logs to console)";
 							
+							// Enable print button in demo mode
 							if (btnPrint) btnPrint.disabled = false;
 							if (btnDemo) btnDemo.style.display = "none";
 							if (btnConnect) btnConnect.style.display = "none";
@@ -874,18 +813,8 @@
 								
 								const rotatedCanvas = getRotatedCanvasForPrint();
 								
-								// Get the active tab to find the correct copies input
-								const activeTab = document.querySelector(".nav-link.active");
-								const tabTarget = activeTab?.getAttribute("data-bs-target");
-								const tabCopiesMap = {
-									"#nav-text": "inputCopies",
-									"#nav-barcode": "inputCopiesBarcode",
-									"#nav-image": "inputCopiesImage",
-									"#nav-qr": "inputCopiesQR",
-									"#nav-qr-text": "inputCopiesQRText"
-								};
-								const copiesInputId = tabCopiesMap[tabTarget] || "inputCopies";
-								const copies = parseInt(document.querySelector("#" + copiesInputId)?.value || 1);
+								// Use the unified copies input
+								const copies = parseInt(document.querySelector("#inputCopies")?.value || 1);
 								
 								for (let i = 0; i < copies; i++) {
 									await sendPrintData(rotatedCanvas);
@@ -1145,14 +1074,7 @@
 				
 				if (btnUppercase) btnUppercase.addEventListener("click", () => {
 					btnUppercase.classList.toggle("active");
-					if (inputText) {
-						if (btnUppercase.classList.contains("active")) {
-							inputText.value = inputText.value.toUpperCase();
-						} else {
-							inputText.value = inputText.value.toLowerCase();
-						}
-						updateCanvasText();
-					}
+					updateCanvasText();
 				});
 				
 				if (btnAlignLeft) btnAlignLeft.addEventListener("click", () => {
@@ -1585,6 +1507,36 @@
 				}
 			}, 100);
 		</script>
+		
+		<!-- Dark Mode Toggle -->
+		<button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
+			<i class="bi bi-moon-stars"></i>
+		</button>
+		
+		<script>
+			// Dark mode toggle functionality
+			const darkModeToggle = document.getElementById('darkModeToggle');
+			const darkModeIcon = darkModeToggle.querySelector('i');
+			
+			// Check for saved dark mode preference or default to light mode
+			const savedTheme = localStorage.getItem('theme');
+			if (savedTheme === 'dark') {
+				document.body.classList.add('dark-mode');
+				darkModeIcon.className = 'bi bi-sun';
+			}
+			
+			darkModeToggle.addEventListener('click', () => {
+				document.body.classList.toggle('dark-mode');
+				const isDark = document.body.classList.contains('dark-mode');
+				
+				// Update icon
+				darkModeIcon.className = isDark ? 'bi bi-sun' : 'bi bi-moon-stars';
+				
+				// Save preference
+				localStorage.setItem('theme', isDark ? 'dark' : 'light');
+			});
+		</script>
+		
 		<script>
 			if ("serviceWorker" in navigator) {
 				navigator.serviceWorker.register("./sw.js");
