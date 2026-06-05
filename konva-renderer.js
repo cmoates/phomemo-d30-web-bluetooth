@@ -79,6 +79,25 @@ class UnifiedPrintPreview {
 	
 	onTabChange(tabId) {
 		this.currentTab = tabId;
+		
+		const tabCanvasMap = {
+			'nav-text-tab': 'canvas',
+			'nav-barcode-tab': 'canvasBarcode',
+			'nav-image-tab': 'canvasImage',
+			'nav-qr-tab': 'canvasQR',
+			'nav-qr-text-tab': 'canvasQRText'
+		};
+		const canvasId = tabCanvasMap[tabId] || 'canvas';
+		
+		// Update visibility of the preview containers in the right column
+		document.querySelectorAll('.preview-wrapper').forEach(el => {
+			el.classList.remove('active');
+		});
+		const activeWrapper = document.getElementById('preview-wrapper-' + canvasId);
+		if (activeWrapper) {
+			activeWrapper.classList.add('active');
+		}
+		
 		this.renderCurrentTab();
 	}
 	

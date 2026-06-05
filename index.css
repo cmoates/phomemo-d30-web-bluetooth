@@ -535,3 +535,60 @@ textarea.form-control {
 	}
 }
 
+/* Dashboard Layout Utilities */
+.sticky-sidebar {
+	position: relative;
+	width: 100%;
+}
+
+@media (min-width: 992px) {
+	.sticky-sidebar {
+		position: sticky;
+		top: 1.5rem;
+		z-index: 100;
+	}
+}
+
+.preview-wrapper {
+	display: none;
+	width: 100%;
+	text-align: center;
+}
+
+.preview-wrapper.active {
+	display: block;
+	animation: fadeIn 0.4s ease;
+}
+
+.bg-canvas {
+	background-color: var(--canvas-bg);
+	border: 1px solid var(--border-color);
+	transition: background-color 0.3s ease;
+}
+
+.bg-light-card {
+	background-color: rgba(0, 0, 0, 0.02);
+	border-top-left-radius: 16px;
+	border-top-right-radius: 16px;
+}
+
+body.dark-mode .bg-light-card {
+	background-color: rgba(255, 255, 255, 0.02);
+}
+
+.badge.bg-indigo {
+	background-color: var(--accent-primary);
+	color: white;
+}
+
+/* Card hover and styling enhancements */
+.card {
+	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-title i {
+	color: var(--accent-primary);
+	margin-right: 0.5rem;
+}
+
+
