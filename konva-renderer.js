@@ -349,7 +349,9 @@ class UnifiedPrintPreview {
 		
 		// Generate barcode on temp canvas
 		const tempCanvas = document.createElement('canvas');
-		const barcodeHeight = Math.floor(printArea.height * 0.7);
+		// Cap barcode height to match 14mm high labels (78 pixels max) to prevent distortion on 15mm labels
+		const maxBarcodeHeight = Math.floor(14 * this.PIXELS_PER_MM * 0.7);
+		const barcodeHeight = Math.min(maxBarcodeHeight, Math.floor(printArea.height * 0.7));
 		
 		try {
 			// Try generating at width: 2 first (clean and easily readable)
