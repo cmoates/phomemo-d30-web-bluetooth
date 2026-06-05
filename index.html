@@ -110,6 +110,17 @@
 						}
 					});
 				}
+				
+				// QR Text input - enforce 5 line limit
+				const qrTextInput = document.getElementById('inputQRText');
+				if (qrTextInput) {
+					qrTextInput.addEventListener('input', (e) => {
+						const lines = qrTextInput.value.split('\n');
+						if (lines.length > 5) {
+							qrTextInput.value = lines.slice(0, 5).join('\n');
+						}
+					});
+				}
 			}
 			
 			// Call when DOM is ready
@@ -1048,43 +1059,17 @@
 					document.querySelectorAll("[onclick*='setLabelSize']").forEach(btn => {
 						btn.classList.remove("active");
 					});
-					updateLabelSize();
-					updateCanvasText();
-					updateCanvasBarcode();
-					updateCanvasImage();
-					updateCanvasQR();
-					updateCanvasQRText();
+					if (window.printPreview) {
+						window.printPreview.updateLabelSize();
+					}
 				});
 				if (inputHeight) inputHeight.addEventListener("input", () => {
 					// Clear active button when manually editing
 					document.querySelectorAll("[onclick*='setLabelSize']").forEach(btn => {
 						btn.classList.remove("active");
 					});
-					updateLabelSize();
-					updateCanvasText();
-					updateCanvasBarcode();
-					updateCanvasImage();
-					updateCanvasQR();
-					updateCanvasQRText();
-				});
-				if (inputText) inputText.addEventListener("input", () => {
-					// Limit to 5 lines maximum
-					const lines = inputText.value.split('\n');
-					if (lines.length > 5) {
-						inputText.value = lines.slice(0, 5).join('\n');
-					}
-					updateCanvasText();
-				});
-				if (inputFontSize) inputFontSize.addEventListener("input", () => {
-					// Sync slider with text input
-					if (inputFontSizeSlider) {
-						inputFontSizeSlider.value = inputFontSize.value;
-					}
-				});
-				if (inputFontSizeSlider) inputFontSizeSlider.addEventListener("input", () => {
-					// Sync text input with slider
-					if (inputFontSize) {
-						inputFontSize.value = inputFontSizeSlider.value;
+					if (window.printPreview) {
+						window.printPreview.updateLabelSize();
 					}
 				});
 				
@@ -1452,73 +1437,6 @@
 						}
 					}
 				}
-				
-				// Initialize other canvas previews
-				try { updateCanvasBarcode(); } catch(e) {}
-				try { updateCanvasImage(); } catch(e) {}
-				try { updateCanvasQR(); } catch(e) {}
-				try { updateCanvasQRText(); } catch(e) {}
-				
-				// Add tab click listeners to trigger rendering when user navigates
-				const tabButtons = document.querySelectorAll('[role="tab"]');
-				tabButtons.forEach(btn => {
-					btn.addEventListener('click', () => {
-						// Give tab animation time to complete before rendering
-						setTimeout(() => {
-							try { updateCanvasBarcode(); } catch(e) {}
-							try { updateCanvasImage(); } catch(e) {}
-							try { updateCanvasQR(); } catch(e) {}
-							try { updateCanvasQRText(); } catch(e) {}
-						}, 100);
-					});
-				});
-				
-				// ===== BARCODE TAB LISTENERS =====
-				const barcodeInput = document.querySelector("#inputBarcode");
-				const barcodeTypeInput = document.querySelector("#inputBarcodeType");
-				
-				if (barcodeInput) barcodeInput.addEventListener("input", updateCanvasBarcode);
-				if (barcodeTypeInput) barcodeTypeInput.addEventListener("change", updateCanvasBarcode);
-				
-				// ===== IMAGE TAB LISTENERS =====
-				const inputImage = document.querySelector("#inputImage");
-				
-				if (inputImage) inputImage.addEventListener("change", updateCanvasImage);
-				
-				// ===== QR CODE TAB LISTENERS =====
-				const inputQR = document.querySelector("#inputQR");
-				const inputQRLayout = document.querySelector("#inputQRLayout");
-				
-				if (inputQR) inputQR.addEventListener("input", updateCanvasQR);
-				if (inputQRLayout) inputQRLayout.addEventListener("change", updateCanvasQR);
-				
-				// ===== QR CODE + TEXT TAB LISTENERS =====
-				const inputQRTextData = document.querySelector("#inputQRTextData");
-				const inputQRText = document.querySelector("#inputQRText");
-				const inputQRTextSize = document.querySelector("#inputQRTextSize");
-				const inputQRTextSizeSlider = document.querySelector("#inputQRTextSizeSlider");
-				
-				if (inputQRTextData) inputQRTextData.addEventListener("input", updateCanvasQRText);
-				if (inputQRText) inputQRText.addEventListener("input", () => {
-					// Limit to 5 lines maximum
-					const lines = inputQRText.value.split('\n');
-					if (lines.length > 5) {
-						inputQRText.value = lines.slice(0, 5).join('\n');
-					}
-					updateCanvasQRText();
-				});
-				if (inputQRTextSize) inputQRTextSize.addEventListener("input", () => {
-					// Sync slider with text input
-					if (inputQRTextSizeSlider) {
-						inputQRTextSizeSlider.value = inputQRTextSize.value;
-					}
-				});
-				if (inputQRTextSizeSlider) inputQRTextSizeSlider.addEventListener("input", () => {
-					// Sync text input with slider
-					if (inputQRTextSize) {
-						inputQRTextSize.value = inputQRTextSizeSlider.value;
-					}
-				});
 				
 				// Ensure canvas has no transform applied
 				const canvas = document.querySelector("#canvas");

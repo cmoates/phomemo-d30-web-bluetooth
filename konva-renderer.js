@@ -73,8 +73,9 @@ class UnifiedPrintPreview {
 			try { manager.updateSize(this.labelSize); } catch(e) { console.error(e); }
 		});
 		
-		// Re-render current tab
-		this.renderCurrentTab();
+		// Re-render all tabs to ensure every single preview (including inactive ones)
+		// is recalculated with the new dimensions, preventing scaling or resizing.
+		this.renderAllTabs();
 	}
 	
 	onTabChange(tabId) {
@@ -416,6 +417,7 @@ class UnifiedPrintPreview {
 		const printArea = manager.getPrintableArea();
 		
 		if (!inputImage || !inputImage.files[0]) {
+			manager.loadedImage = null; // Clear cached image
 			const placeholder = new Konva.Text({
 				x: printArea.x,
 				y: printArea.y + printArea.height / 2 - 10,
@@ -430,37 +432,47 @@ class UnifiedPrintPreview {
 			return;
 		}
 		
+		// Render cached image synchronously if available to prevent async race conditions during resize
+		if (manager.loadedImage) {
+			this.drawImageToStage(manager, manager.loadedImage, printArea);
+			return;
+		}
+		
 		const reader = new FileReader();
 		reader.onload = (e) => {
 			const img = new Image();
 			img.onload = () => {
-				// Calculate aspect ratio and fit to printable area
-				const imgRatio = img.width / img.height;
-				const printRatio = printArea.width / printArea.height;
-				
-				let imgWidth, imgHeight;
-				if (imgRatio > printRatio) {
-					imgWidth = printArea.width * 0.9;
-					imgHeight = imgWidth / imgRatio;
-				} else {
-					imgHeight = printArea.height * 0.9;
-					imgWidth = imgHeight * imgRatio;
-				}
-				
-				const konvaImage = new Konva.Image({
-					image: img,
-					x: printArea.x + (printArea.width - imgWidth) / 2,
-					y: printArea.y + (printArea.height - imgHeight) / 2,
-					width: imgWidth,
-					height: imgHeight
-				});
-				
-				manager.contentLayer.add(konvaImage);
-				manager.stage.draw();
+				manager.loadedImage = img;
+				this.drawImageToStage(manager, img, printArea);
 			};
 			img.src = e.target.result;
 		};
 		reader.readAsDataURL(inputImage.files[0]);
+	}
+	
+	drawImageToStage(manager, img, printArea) {
+		const imgRatio = img.width / img.height;
+		const printRatio = printArea.width / printArea.height;
+		
+		let imgWidth, imgHeight;
+		if (imgRatio > printRatio) {
+			imgWidth = printArea.width * 0.9;
+			imgHeight = imgWidth / imgRatio;
+		} else {
+			imgHeight = printArea.height * 0.9;
+			imgWidth = imgHeight * imgRatio;
+		}
+		
+		const konvaImage = new Konva.Image({
+			image: img,
+			x: printArea.x + (printArea.width - imgWidth) / 2,
+			y: printArea.y + (printArea.height - imgHeight) / 2,
+			width: imgWidth,
+			height: imgHeight
+		});
+		
+		manager.contentLayer.add(konvaImage);
+		manager.stage.draw();
 	}
 	
 	renderQR(manager) {
@@ -475,16 +487,34 @@ class UnifiedPrintPreview {
 		const data = inputQR.value || 'https://example.com';
 		const numCodes = parseInt(inputQRLayout?.value || '1');
 		
-		// Calculate QR size based on number of codes
-		// Each code gets equal width and height
 		const widthPerCode = printArea.width / numCodes;
 		const qrSize = Math.floor(Math.min(widthPerCode, printArea.height) * 0.95);
+		
+		// Create placeholder Konva.Image nodes synchronously to avoid overlapping race conditions
+		const qrImages = [];
+		for (let i = 0; i < numCodes; i++) {
+			const qrX = Math.floor(printArea.x + (i * widthPerCode) + (widthPerCode - qrSize) / 2);
+			const qrY = Math.floor(printArea.y + (printArea.height - qrSize) / 2);
+			
+			const qrImage = new Konva.Image({
+				x: qrX,
+				y: qrY,
+				width: qrSize,
+				height: qrSize,
+				name: 'qr-code-image-' + i
+			});
+			manager.contentLayer.add(qrImage);
+			qrImages.push(qrImage);
+		}
+		manager.stage.draw();
 		
 		const tempCanvas = document.createElement('canvas');
 		
 		// Render QR code at exactly target size with small margin (1 module) to prevent scaling and maximize module size
 		window.QRCode.toCanvas(tempCanvas, data, { width: qrSize, margin: 1 }, (err) => {
 			if (err) {
+				// Clear content layer and draw error message
+				manager.contentLayer.destroyChildren();
 				const errorMsg = new Konva.Text({
 					x: printArea.x,
 					y: printArea.y + printArea.height / 2 - 10,
@@ -499,22 +529,10 @@ class UnifiedPrintPreview {
 				return;
 			}
 			
-			// Render QR codes side by side
-			for (let i = 0; i < numCodes; i++) {
-				// Round coordinates to integer values to prevent browser sub-pixel blur
-				const qrX = Math.floor(printArea.x + (i * widthPerCode) + (widthPerCode - qrSize) / 2);
-				const qrY = Math.floor(printArea.y + (printArea.height - qrSize) / 2);
-				
-				const qrImage = new Konva.Image({
-					image: tempCanvas,
-					x: qrX,
-					y: qrY,
-					width: qrSize,
-					height: qrSize
-				});
-				manager.contentLayer.add(qrImage);
-			}
-			
+			// Update the image of the placeholder nodes
+			qrImages.forEach(qrImage => {
+				qrImage.image(tempCanvas);
+			});
 			manager.stage.draw();
 		});
 	}
@@ -527,8 +545,6 @@ class UnifiedPrintPreview {
 		manager.contentLayer.destroyChildren();
 		const printArea = manager.getPrintableArea();
 		
-		// Render QR on left side (just enough for the square QR), text takes remaining space
-		// QR code needs square area equal to height, so calculate based on that
 		const qrSize = Math.floor(printArea.height * 0.98);
 		const qrAreaWidth = qrSize + 4; // QR + small margin
 		
@@ -546,35 +562,25 @@ class UnifiedPrintPreview {
 			height: printArea.height
 		};
 		
-		// Render QR
+		// Create placeholder QR image synchronously to avoid race conditions
+		let qrImage = null;
 		if (inputQRTextData) {
-			const data = inputQRTextData.value || 'https://example.com';
-			const tempCanvas = document.createElement('canvas');
-			
-			// Render QR code at exactly target size with small margin (1 module) to prevent scaling and maximize module size
-			window.QRCode.toCanvas(tempCanvas, data, { width: qrSize, margin: 1 }, (err) => {
-				if (!err) {
-					const qrImage = new Konva.Image({
-						image: tempCanvas,
-						x: qrArea.x,
-						y: qrArea.y + (qrArea.height - qrSize) / 2,
-						width: qrSize,
-						height: qrSize
-					});
-					manager.contentLayer.add(qrImage);
-					manager.stage.draw();
-				}
+			qrImage = new Konva.Image({
+				x: qrArea.x,
+				y: qrArea.y + (qrArea.height - qrSize) / 2,
+				width: qrSize,
+				height: qrSize,
+				name: 'qr-text-image'
 			});
+			manager.contentLayer.add(qrImage);
 		}
 		
-		// Render text 
+		// Render text synchronously
 		if (inputQRText && inputQRTextSize) {
 			const text = inputQRText.value || 'Label';
 			const fontSizeMm = parseFloat(inputQRTextSize.value) || 4;
 			const fontSize = fontSizeMm * this.PIXELS_PER_MM;
 			
-			// Use Konva's text with word wrapping on spaces and newlines
-			// Add small left padding for spacing from QR code
 			const textPadding = 4;
 			const textNode = new Konva.Text({
 				x: textArea.x + textPadding,
@@ -589,7 +595,22 @@ class UnifiedPrintPreview {
 			});
 			
 			manager.contentLayer.add(textNode);
-			manager.stage.draw();
+		}
+		
+		manager.stage.draw();
+		
+		// Render QR code asynchronously
+		if (inputQRTextData && qrImage) {
+			const data = inputQRTextData.value || 'https://example.com';
+			const tempCanvas = document.createElement('canvas');
+			
+			// Render QR code at exactly target size with small margin (1 module) to prevent scaling and maximize module size
+			window.QRCode.toCanvas(tempCanvas, data, { width: qrSize, margin: 1 }, (err) => {
+				if (!err && qrImage) {
+					qrImage.image(tempCanvas);
+					manager.stage.draw();
+				}
+			});
 		}
 	}
 }
@@ -750,8 +771,11 @@ function setupEventListeners() {
 	if (imageInput) {
 		imageInput.addEventListener('change', () => {
 			const manager = printPreview.managers['canvasImage'];
-			if (manager && printPreview.currentTab === 'nav-image-tab') {
-				printPreview.renderImage(manager);
+			if (manager) {
+				manager.loadedImage = null; // Clear cached image on file change
+				if (printPreview.currentTab === 'nav-image-tab') {
+					printPreview.renderImage(manager);
+				}
 			}
 		});
 	}
