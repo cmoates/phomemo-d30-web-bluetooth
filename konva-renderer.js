@@ -329,37 +329,46 @@ class UnifiedPrintPreview {
 		
 		// Generate barcode on temp canvas
 		const tempCanvas = document.createElement('canvas');
-		tempCanvas.width = 400;
-		tempCanvas.height = 100;
+		const barcodeHeight = Math.floor(printArea.height * 0.7);
 		
 		try {
+			// Try generating at width: 2 first (clean and easily readable)
+			let barWidthSetting = 2;
 			window.JsBarcode(tempCanvas, data, {
 				format: jsbarFormat,
-				width: 2,
-				height: 80,
+				width: barWidthSetting,
+				height: barcodeHeight,
 				margin: 0
 			});
 			
-			// Calculate scaling to fit in printable area
-			const maxWidth = printArea.width * 0.9;
-			const maxHeight = printArea.height * 0.8;
-			const barcodeRatio = tempCanvas.width / tempCanvas.height;
-			
-			let barcodeWidth = maxWidth;
-			let barcodeHeight = barcodeWidth / barcodeRatio;
-			
-			if (barcodeHeight > maxHeight) {
-				barcodeHeight = maxHeight;
-				barcodeWidth = barcodeHeight * barcodeRatio;
+			// If too wide for the printable area, fall back to width: 1
+			if (tempCanvas.width > printArea.width) {
+				barWidthSetting = 1;
+				window.JsBarcode(tempCanvas, data, {
+					format: jsbarFormat,
+					width: barWidthSetting,
+					height: barcodeHeight,
+					margin: 0
+				});
 			}
 			
-			// Convert canvas to Konva Image
+			let barcodeWidth = tempCanvas.width;
+			let barcodeHeightVal = tempCanvas.height;
+			
+			// If it STILL doesn't fit even at width: 1, scale it down
+			if (barcodeWidth > printArea.width) {
+				const scale = printArea.width / barcodeWidth;
+				barcodeWidth = printArea.width;
+				barcodeHeightVal = barcodeHeightVal * scale;
+			}
+			
+			// Convert canvas to Konva Image (1:1 rendering avoids anti-aliasing blur)
 			const konvaImage = new Konva.Image({
 				image: tempCanvas,
 				x: printArea.x + (printArea.width - barcodeWidth) / 2,
-				y: printArea.y + (printArea.height - barcodeHeight) / 2,
+				y: printArea.y + (printArea.height - barcodeHeightVal) / 2,
 				width: barcodeWidth,
-				height: barcodeHeight
+				height: barcodeHeightVal
 			});
 			
 			manager.contentLayer.add(konvaImage);
@@ -447,9 +456,15 @@ class UnifiedPrintPreview {
 		const data = inputQR.value || 'https://example.com';
 		const numCodes = parseInt(inputQRLayout?.value || '1');
 		
+		// Calculate QR size based on number of codes
+		// Each code gets equal width and height
+		const widthPerCode = printArea.width / numCodes;
+		const qrSize = Math.floor(Math.min(widthPerCode, printArea.height) * 0.95);
+		
 		const tempCanvas = document.createElement('canvas');
 		
-		window.QRCode.toCanvas(tempCanvas, data, { width: 300 }, (err) => {
+		// Render QR code at exactly target size with small margin (1 module) to prevent scaling and maximize module size
+		window.QRCode.toCanvas(tempCanvas, data, { width: qrSize, margin: 1 }, (err) => {
 			if (err) {
 				const errorMsg = new Konva.Text({
 					x: printArea.x,
@@ -465,17 +480,16 @@ class UnifiedPrintPreview {
 				return;
 			}
 			
-			// Calculate QR size based on number of codes
-			// Each code gets equal width and height
-			const widthPerCode = printArea.width / numCodes;
-			const qrSize = Math.min(widthPerCode, printArea.height) * 0.95;
-			
 			// Render QR codes side by side
 			for (let i = 0; i < numCodes; i++) {
+				// Round coordinates to integer values to prevent browser sub-pixel blur
+				const qrX = Math.floor(printArea.x + (i * widthPerCode) + (widthPerCode - qrSize) / 2);
+				const qrY = Math.floor(printArea.y + (printArea.height - qrSize) / 2);
+				
 				const qrImage = new Konva.Image({
 					image: tempCanvas,
-					x: printArea.x + (i * widthPerCode) + (widthPerCode - qrSize) / 2,
-					y: printArea.y + (printArea.height - qrSize) / 2,
+					x: qrX,
+					y: qrY,
 					width: qrSize,
 					height: qrSize
 				});
@@ -496,7 +510,7 @@ class UnifiedPrintPreview {
 		
 		// Render QR on left side (just enough for the square QR), text takes remaining space
 		// QR code needs square area equal to height, so calculate based on that
-		const qrSize = printArea.height * 0.98;
+		const qrSize = Math.floor(printArea.height * 0.98);
 		const qrAreaWidth = qrSize + 4; // QR + small margin
 		
 		const qrArea = {
@@ -518,7 +532,8 @@ class UnifiedPrintPreview {
 			const data = inputQRTextData.value || 'https://example.com';
 			const tempCanvas = document.createElement('canvas');
 			
-			window.QRCode.toCanvas(tempCanvas, data, { width: 200 }, (err) => {
+			// Render QR code at exactly target size with small margin (1 module) to prevent scaling and maximize module size
+			window.QRCode.toCanvas(tempCanvas, data, { width: qrSize, margin: 1 }, (err) => {
 				if (!err) {
 					const qrImage = new Konva.Image({
 						image: tempCanvas,

@@ -299,7 +299,6 @@
 									<canvas id="canvas"></canvas>
 								</div>
 							</div>
-							</div>
 						</div>
 					</div>
 					<div
@@ -508,7 +507,9 @@
 							</div>
 						</div>
 					</div>
-
+				</div>
+			</form>
+		</div>
 
 		<div class="toast-container position-fixed bottom-0 start-0 p-3">
 			<div
@@ -1178,30 +1179,36 @@
 						const tempCanvas = document.createElement("canvas");
 						const barcodeHeight = printableHeight * barcodeHeightRatio;
 						
-						// Set reasonable initial dimensions for the temp canvas
-						tempCanvas.width = printableWidth;
-						tempCanvas.height = barcodeHeight;
-						
 						try {
-							// Generate barcode on temp canvas with the correct format
+							// Try generating at width: 2 first (clean and easily readable)
+							let barWidthSetting = 2;
 							window.JsBarcode(tempCanvas, data, {
 								format: jsbarFormat,
-								width: 2,
+								width: barWidthSetting,
 								height: barcodeHeight,
 								margin: 0
 							});
 							
-							// Calculate optimal scale to fit barcode in available space
-							// Use 95% of available width to leave small margins
-							const maxWidth = printableWidth * 0.95;
-							const scaleX = maxWidth / tempCanvas.width;
-							const scaleY = barcodeHeight / tempCanvas.height;
+							// If too wide for the printable area, fall back to width: 1
+							if (tempCanvas.width > printableWidth) {
+								barWidthSetting = 1;
+								window.JsBarcode(tempCanvas, data, {
+									format: jsbarFormat,
+									width: barWidthSetting,
+									height: barcodeHeight,
+									margin: 0
+								});
+							}
 							
-							// Use the smaller scale to ensure barcode fits both horizontally and vertically
-							const scale = Math.min(scaleX, scaleY);
+							let scaledWidth = tempCanvas.width;
+							let scaledHeight = tempCanvas.height;
 							
-							const scaledWidth = tempCanvas.width * scale;
-							const scaledHeight = tempCanvas.height * scale;
+							// If it STILL doesn't fit even at width: 1, scale it down
+							if (scaledWidth > printableWidth) {
+								const scale = printableWidth / scaledWidth;
+								scaledWidth = printableWidth;
+								scaledHeight = scaledHeight * scale;
+							}
 							
 							// Center barcode in printable area
 							const barcodeX = marginLeftPx + (printableWidth - scaledWidth) / 2;
@@ -1305,42 +1312,22 @@
 					
 					if (typeof window.QRCode !== 'undefined' && typeof window.QRCode.toCanvas === 'function') {
 						try {
-							if (layout === "single") {
-								// Single QR code centered
-								const qrSize = Math.min(printableWidth, printableHeight) * 0.9;
-								const qrX = marginLeftPx + (printableWidth - qrSize) / 2;
-								const qrY = marginTopPx + (printableHeight - qrSize) / 2;
+							const numCodes = parseInt(layout) || 1;
+							const widthPerCode = printableWidth / numCodes;
+							const qrSize = Math.floor(Math.min(widthPerCode, printableHeight) * 0.95);
+							
+							for (let i = 0; i < numCodes; i++) {
+								const qrX = Math.floor(marginLeftPx + (i * widthPerCode) + (widthPerCode - qrSize) / 2);
+								const qrY = Math.floor(marginTopPx + (printableHeight - qrSize) / 2);
 								
-								// Create temporary canvas for QR code
+								// Create temporary canvas for each QR code
 								const tempCanvas = document.createElement("canvas");
-								tempCanvas.width = qrSize;
-								tempCanvas.height = qrSize;
 								
-								window.QRCode.toCanvas(tempCanvas, data, { width: qrSize }, (err) => {
+								window.QRCode.toCanvas(tempCanvas, data, { width: qrSize, margin: 1 }, (err) => {
 									if (!err) {
 										ctx.drawImage(tempCanvas, qrX, qrY, qrSize, qrSize);
 									}
 								});
-							} else {
-								// Multiple QR codes side by side
-								const maxQRSize = Math.min(printableHeight * 0.9, printableWidth / 3);
-								const qrCount = Math.floor(printableWidth / maxQRSize);
-								
-								for (let i = 0; i < qrCount; i++) {
-									const qrX = marginLeftPx + i * maxQRSize + (printableWidth - qrCount * maxQRSize) / 2;
-									const qrY = marginTopPx + (printableHeight - maxQRSize) / 2;
-									
-									// Create temporary canvas for each QR code
-									const tempCanvas = document.createElement("canvas");
-									tempCanvas.width = maxQRSize;
-									tempCanvas.height = maxQRSize;
-									
-									window.QRCode.toCanvas(tempCanvas, data, { width: maxQRSize }, (err) => {
-										if (!err) {
-											ctx.drawImage(tempCanvas, qrX, qrY, maxQRSize, maxQRSize);
-										}
-									});
-								}
 							}
 						} catch (err) {
 							console.error('QR code error:', err);
@@ -1396,7 +1383,7 @@
 							tempCanvas.width = qrSize;
 							tempCanvas.height = qrSize;
 							
-							window.QRCode.toCanvas(tempCanvas, qrData, { width: qrSize }, (err) => {
+							window.QRCode.toCanvas(tempCanvas, qrData, { width: qrSize, margin: 1 }, (err) => {
 								if (!err) {
 									// Copy QR code to main canvas
 									ctx.drawImage(tempCanvas, qrX, qrY, qrSize, qrSize);
