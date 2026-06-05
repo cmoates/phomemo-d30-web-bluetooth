@@ -295,87 +295,97 @@
 									>
 										<div class="mb-3">
 											<h6 class="text-muted mb-2">Text Options</h6>
-											<div class="d-flex gap-2 flex-wrap">
-												<button
-													type="button"
-													class="btn btn-sm btn-outline-secondary"
-													id="btnBold"
-													title="Bold"
-												>
-													<i class="bi bi-type-bold"></i>
-												</button>
-												<button
-													type="button"
-													class="btn btn-sm btn-outline-secondary"
-													id="btnItalic"
-													title="Italic"
-												>
-													<i class="bi bi-type-italic"></i>
-												</button>
-												<button
-													type="button"
-													class="btn btn-sm btn-outline-secondary"
-													id="btnUppercase"
-													title="Uppercase"
-												>
-													ABC
-												</button>
+											<div class="d-flex align-items-center gap-3 flex-wrap">
+												<!-- Formatting -->
+												<div class="d-flex gap-2">
+													<button
+														type="button"
+														class="btn btn-sm btn-outline-secondary"
+														id="btnBold"
+														title="Bold"
+													>
+														<i class="bi bi-type-bold"></i>
+													</button>
+													<button
+														type="button"
+														class="btn btn-sm btn-outline-secondary"
+														id="btnItalic"
+														title="Italic"
+													>
+														<i class="bi bi-type-italic"></i>
+													</button>
+													<button
+														type="button"
+														class="btn btn-sm btn-outline-secondary"
+														id="btnUppercase"
+														title="Uppercase"
+													>
+														ABC
+													</button>
+												</div>
+												
 												<div class="vr"></div>
-												<button
-													type="button"
-													class="btn btn-sm btn-outline-secondary"
-													id="btnAlignLeft"
-													title="Align left"
-												>
-													<i class="bi bi-text-left"></i>
-												</button>
-												<button
-													type="button"
-													class="btn btn-sm btn-outline-secondary active"
-													id="btnAlignCenter"
-													title="Align center"
-												>
-													<i class="bi bi-text-center"></i>
-												</button>
-												<button
-													type="button"
-													class="btn btn-sm btn-outline-secondary"
-													id="btnAlignRight"
-													title="Align right"
-												>
-													<i class="bi bi-text-right"></i>
-												</button>
+												
+												<!-- Alignment -->
+												<div class="d-flex gap-2">
+													<button
+														type="button"
+														class="btn btn-sm btn-outline-secondary"
+														id="btnAlignLeft"
+														title="Align left"
+													>
+														<i class="bi bi-text-left"></i>
+													</button>
+													<button
+														type="button"
+														class="btn btn-sm btn-outline-secondary active"
+														id="btnAlignCenter"
+														title="Align center"
+													>
+														<i class="bi bi-text-center"></i>
+													</button>
+													<button
+														type="button"
+														class="btn btn-sm btn-outline-secondary"
+														id="btnAlignRight"
+														title="Align right"
+													>
+														<i class="bi bi-text-right"></i>
+													</button>
+												</div>
+												
+												<div class="vr"></div>
+												
+												<!-- Font Size -->
+												<div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 180px; max-width: 250px;">
+													<i class="bi bi-type-size text-muted" style="font-size: 1.15rem;" title="Font Size"></i>
+													<input
+														type="range"
+														min="2"
+														max="14"
+														step="0.25"
+														value="6"
+														class="form-range flex-grow-1"
+														id="inputFontSizeSlider"
+													/>
+													<div class="input-group input-group-sm" style="max-width: 80px;">
+														<input
+															type="number"
+															step="0.25"
+															min="2"
+															max="14"
+															value="6"
+															class="form-control px-2"
+															id="inputFontSize"
+														/>
+														<span class="input-group-text px-1" style="font-size: 0.75rem;">mm</span>
+													</div>
+												</div>
 											</div>
-										</div>
-										<div class="mb-3">
-											<label for="inputText" class="form-label text-muted mb-2">Text to print</label>
-											<textarea class="form-control" id="inputText" rows="4">Hello, world!</textarea>
 										</div>
 										<div class="mb-0">
-											<label for="inputFontSize" class="form-label">Font size</label>
-											<div class="mb-2">
-												<input
-													type="range"
-													min="2"
-													max="14"
-													step="0.25"
-													value="6"
-													class="form-range"
-													id="inputFontSizeSlider"
-												/>
-											</div>
-											<div class="input-group input-group-sm" style="max-width: 150px;">
-												<input
-													type="number"
-													step="0.25"
-													min="2"
-													max="14"
-													value="6"
-													class="form-control"
-													id="inputFontSize"
-												/>
-												<span class="input-group-text">mm</span>
-											</div>
+											<label for="inputText" class="form-label text-muted mb-2">Text to print</label>
+											<textarea class="form-control" id="inputText" rows="4">Hello, world!</textarea>
 										</div>
 									</div>
 
