@@ -4,7 +4,7 @@ Original code base from odensc: https://github.com/odensc/phomemo-d30-web-blueto
 
 This started out as a "let's add a feature" and turned into a massive rewrite. Since odensc previously stated that he wasn't really interested in this as a long term expanded project, I'm just forking it here. I've also incorporated some various other improvements that others have done. All credit is of course in the commits.
 
-Proof of concept and demo of printing to a [Phomemo D30](https://www.amazon.com/dp/B08HV3MPFD) Bluetooth label maker via the browser using Web Bluetooth.
+Proof of concept and demo of printing to a [Phomemo D30](https://www.amazon.com/dp/B08HV3MPFD/?tag=cmoates-20) Bluetooth label maker via the browser using Web Bluetooth.
 
 ## Features
 
@@ -181,3 +181,7 @@ Inspiration for the data structure / image conversion was taken from some other 
 
 - https://github.com/WebBluetoothCG/demos
 - https://github.com/Knightro63/phomemo
+
+## Disclosure
+
+*As an Amazon Associate, I earn from qualifying purchases.*
